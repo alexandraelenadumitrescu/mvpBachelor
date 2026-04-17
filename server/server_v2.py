@@ -19,6 +19,8 @@ import sys
 import uuid
 import base64
 import threading
+import time
+import statistics
 from io import BytesIO
 from pathlib import Path
 
@@ -139,6 +141,23 @@ print(f"✅ FAISS index ready with {index.ntotal} vectors (dim={weighted_matrix_
 
 lut_cache:     dict = {}  # basename -> np.ndarray shape (LUT_SIZE, LUT_SIZE, LUT_SIZE, 3)
 style_profiles: dict = {}  # session_id -> np.ndarray shape (N, 517) weighted-normalized
+
+# Latency telemetry — rolling window of last 100 requests per endpoint
+_latency: dict = {
+    "faiss_search_ms":   [],
+    "rerank_ms":         [],
+    "lut_serialize_ms":  [],
+    "lut_compute_ms":    [],
+    "search_total_ms":   [],
+}
+_latency_lock = threading.Lock()
+
+def _record(key: str, ms: float):
+    with _latency_lock:
+        buf = _latency[key]
+        buf.append(ms)
+        if len(buf) > 100:
+            buf.pop(0)
 
 
 def _precompute_luts():
@@ -487,6 +506,18 @@ class StyleSearchResponse(BaseModel):
     style_fallback: bool
     lut_cached:     bool
 
+class LutResponse(BaseModel):
+    lut_b64:  str   # flat float32 array (LUT_SIZE^3 * 3 values) as base64
+    lut_size: int   # LUT grid side length (17)
+
+class StyleVectorsRequest(BaseModel):
+    vectors:    list[list[float]]  # pre-computed 517-dim hybrid vectors from Android
+    session_id: str | None = None  # update existing session if provided
+
+class StyleVectorsResponse(BaseModel):
+    session_id:     str
+    vectors_stored: int
+
 class StyleUploadResponse(BaseModel):
     session_id:     str
     vectors_stored: int
@@ -523,6 +554,27 @@ class BatchResponse(BaseModel):
 # ============================================================
 # ENDPOINTS
 # ============================================================
+
+@app.get("/latency")
+def latency_report():
+    """Returns mean ± std (ms) for all instrumented server-side operations."""
+    report = {}
+    with _latency_lock:
+        for key, vals in _latency.items():
+            if len(vals) >= 2:
+                report[key] = {
+                    "n":    len(vals),
+                    "mean": round(statistics.mean(vals), 3),
+                    "std":  round(statistics.stdev(vals), 3),
+                    "min":  round(min(vals), 3),
+                    "max":  round(max(vals), 3),
+                }
+            elif len(vals) == 1:
+                report[key] = {"n": 1, "mean": round(vals[0], 3), "std": 0.0}
+            else:
+                report[key] = {"n": 0, "mean": None, "std": None}
+    return report
+
 
 @app.get("/health")
 def health():
@@ -593,13 +645,21 @@ def search_and_correct(
 
     query = np.array(req.vector, dtype="float32").reshape(1, -1)
     query = query / (np.linalg.norm(query) + 1e-8)
+
+    t0 = time.perf_counter()
     D, I  = index.search(query, max(req.top_k, 10) + 1)
+    faiss_ms = (time.perf_counter() - t0) * 1000
+    _record("faiss_search_ms", faiss_ms)
 
     candidates = [(image_names[i], float(D[0][j])) for j, i in enumerate(I[0]) if i >= 0]
     if not candidates:
         raise HTTPException(status_code=500, detail="FAISS returned no results")
 
+    t1 = time.perf_counter()
     retrieved_basename, similarity, match_aes = _aesthetic_rerank(candidates, aesthetic_weight)
+    rerank_ms = (time.perf_counter() - t1) * 1000
+    _record("rerank_ms", rerank_ms)
+    _record("search_total_ms", faiss_ms + rerank_ms)
 
     raw_b64    = ""
     edited_b64 = ""
@@ -910,6 +970,58 @@ def get_edited_image(basename: str):
     if not os.path.exists(path):
         raise HTTPException(status_code=404, detail="Edited image not found")
     return FileResponse(path, media_type="image/jpeg")
+
+
+@app.get("/lut/{basename}", response_model=LutResponse)
+def get_lut(basename: str):
+    """
+    Return the 3D LUT for a given reference image basename as a flat base64-encoded
+    float32 byte array.  Shape: (LUT_SIZE, LUT_SIZE, LUT_SIZE, 3) → flattened.
+    Android client downloads once, caches on-device, and applies trilinear
+    interpolation locally — no image ever reaches the server.
+    If the LUT is not yet pre-computed, it is built on-demand and added to lut_cache.
+    """
+    basename = Path(basename).name
+    lut = lut_cache.get(basename)
+    if lut is None:
+        raw_path    = os.path.join(RAW_DIR,    basename + ".jpg")
+        edited_path = os.path.join(EDITED_DIR, basename + ".jpg")
+        if not os.path.exists(raw_path) or not os.path.exists(edited_path):
+            raise HTTPException(status_code=404, detail=f"Images not found for '{basename}'")
+        t_compute = time.perf_counter()
+        raw    = np.array(Image.open(raw_path)).astype(np.float32)    / 255.0
+        edited = np.array(Image.open(edited_path)).astype(np.float32) / 255.0
+        lut    = extract_colour_lut(raw, edited)
+        lut_cache[basename] = lut
+        _record("lut_compute_ms", (time.perf_counter() - t_compute) * 1000)
+
+    t_ser = time.perf_counter()
+    lut_bytes = lut.flatten().astype(np.float32).tobytes()
+    lut_b64   = base64.b64encode(lut_bytes).decode("utf-8")
+    _record("lut_serialize_ms", (time.perf_counter() - t_ser) * 1000)
+
+    return LutResponse(lut_b64=lut_b64, lut_size=int(lut.shape[0]))
+
+
+@app.post("/style/vectors", response_model=StyleVectorsResponse)
+def style_vectors(req: StyleVectorsRequest):
+    """
+    Store pre-computed 517-dim hybrid vectors as a style profile.
+    Android computes CLIP + defect vectors locally and sends only the numbers —
+    no image bytes ever reach the server.
+    Mirrors /style/upload but without server-side CLIP inference.
+    """
+    expected_dim = weighted_matrix_norm.shape[1]
+    for i, vec in enumerate(req.vectors):
+        if len(vec) != expected_dim:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Vector {i}: expected {expected_dim} dims, got {len(vec)}",
+            )
+    vecs       = np.array(req.vectors, dtype="float32")
+    session_id = req.session_id or str(uuid.uuid4())
+    style_profiles[session_id] = vecs
+    return StyleVectorsResponse(session_id=session_id, vectors_stored=len(vecs))
 
 
 # ============================================================

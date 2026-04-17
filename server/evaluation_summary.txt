@@ -1,0 +1,4 @@
+CLIP-only  - Top-1: 0.850  |  Top-5 mean: 0.822
+Hybrid     - Top-1: 0.988  |  Top-5 mean: 0.986
+Hybrid outperforms CLIP-only on top-1 in 100.0% of queries (N=200)
+Delta top-1: +0.138  |  Delta top-5: +0.163

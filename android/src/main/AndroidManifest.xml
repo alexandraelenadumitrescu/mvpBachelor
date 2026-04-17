@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+
+    <application
+        android:allowBackup="true"
+        android:label="PhotoMatch V2"
+        android:supportsRtl="true"
+        android:usesCleartextTraffic="true"
+        android:theme="@style/Theme.PhotoMatch">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name=".ProcessingActivity" android:exported="false" />
+        <activity android:name=".ResultsActivity"    android:exported="false" />
+        <activity android:name=".DetailActivity"     android:exported="false" />
+        <activity android:name=".StyleSetupActivity" android:exported="false" />
+        <activity android:name=".BatchActivity"      android:exported="false" />
+        <activity android:name=".BatchResultsActivity" android:exported="false" />
+        <activity android:name=".ClusterActivity"    android:exported="false" />
+        <activity android:name=".ClusterResultsActivity" android:exported="false" />
+        <activity android:name=".BurstActivity"      android:exported="false" />
+        <activity android:name=".BurstResultsActivity" android:exported="false" />
+        <activity android:name=".CompareActivity"    android:exported="false" />
+        <activity android:name=".FavoritesActivity"  android:exported="false" />
+        <activity android:name=".FavoriteDetailActivity" android:exported="false" />
+        <activity android:name=".FaceGroupsActivity" android:exported="false" />
+        <activity android:name=".PipelineActivity"   android:exported="false" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.photomatch.v2.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+    </application>
+
+</manifest>

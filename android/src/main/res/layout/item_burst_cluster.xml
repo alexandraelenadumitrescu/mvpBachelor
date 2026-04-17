@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardBackgroundColor="@color/color_surface"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="4dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Stack of photos -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="180dp"
+            android:clipChildren="false">
+
+            <!-- Back photo 2 (furthest back, most offset) -->
+            <ImageView
+                android:id="@+id/ivBack2"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:alpha="0.5"
+                android:scaleType="centerCrop"
+                android:translationX="10dp"
+                android:translationY="10dp"
+                android:visibility="gone" />
+
+            <!-- Back photo 1 -->
+            <ImageView
+                android:id="@+id/ivBack1"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:alpha="0.75"
+                android:scaleType="centerCrop"
+                android:translationX="5dp"
+                android:translationY="5dp"
+                android:visibility="gone" />
+
+            <!-- Front photo (best aesthetic score) -->
+            <ImageView
+                android:id="@+id/ivFront"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop" />
+
+            <!-- Score badge — top-right -->
+            <TextView
+                android:id="@+id/tvScore"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|end"
+                android:layout_margin="8dp"
+                android:background="@color/color_amber"
+                android:fontFamily="monospace"
+                android:paddingStart="6dp"
+                android:paddingEnd="6dp"
+                android:paddingTop="3dp"
+                android:paddingBottom="3dp"
+                android:textColor="#000000"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <!-- Cluster count label — bottom-left -->
+            <TextView
+                android:id="@+id/tvClusterCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|start"
+                android:fontFamily="monospace"
+                android:paddingStart="8dp"
+                android:paddingBottom="6dp"
+                android:textColor="@color/color_text_dim"
+                android:textSize="11sp"
+                android:visibility="gone" />
+
+        </FrameLayout>
+
+        <!-- Expanded photo strip (shown when cluster is tapped) -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvPhotos"
+            android:layout_width="match_parent"
+            android:layout_height="130dp"
+            android:orientation="horizontal"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>
