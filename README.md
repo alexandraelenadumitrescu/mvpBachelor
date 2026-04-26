@@ -16,6 +16,116 @@ User Photo
 [LUT Blend]            → Final output (blend strength = 0.2)
 ```
 
+## Model Architecture
+
+### 1. Hybrid Retrieval — Two Models Combined
+
+```mermaid
+flowchart LR
+    IMG([Input Image])
+
+    IMG --> CLIP
+    IMG --> MNV3
+
+    subgraph CLIP["CLIP ViT-B-32 — fully frozen"]
+        direction TB
+        PE[Patch Embed\n32×32 patches] --> TR[Transformer\n12 layers]
+        TR --> CLS[CLS token\n→ projection]
+    end
+
+    subgraph MNV3["MobileNetV3Small — fine-tuned"]
+        direction TB
+        BB[Frozen Backbone\nInverted Residuals] --> HEAD[Custom Head\ntrained from scratch]
+    end
+
+    CLIP -- "512-dim\nL2 normalized" --> WC
+    MNV3 -- "5-dim\nSigmoid scores" --> WC
+
+    WC["Weighted Concat\n×1.0 · clip  +  ×5.0 · defect\n→ L2 normalize\n517-dim query"] --> FAISS
+
+    FAISS["FAISS IndexFlatIP\n3,499 reference vectors\ncosine similarity"] --> TOP5([Top-5 matches])
+```
+
+---
+
+### 2. MobileNetV3Small — Modification & Frozen Layers
+
+The original ImageNet classifier head was removed and replaced with a 5-output defect head. The backbone was frozen during early training and only the new head was updated.
+
+```mermaid
+flowchart TD
+    subgraph BACKBONE["Backbone — pretrained on ImageNet, then frozen"]
+        direction LR
+        IN["224×224 RGB"] --> C1["Conv2d + BN + Hardswish\n3 → 16"]
+        C1 --> BLK["11× Bottleneck Blocks\nInverted Residuals + Squeeze-Excite"]
+        BLK --> C2["Conv2d + BN + Hardswish\n96 → 576"]
+        C2 --> AVG["AdaptiveAvgPool2d\n→ 576-dim features"]
+    end
+
+    subgraph OLD_HEAD["Original classifier (replaced — ImageNet)"]
+        direction LR
+        O1["Linear 576 → 1024"] --> O2["Hardswish"]
+        O2 --> O3["Dropout"]
+        O3 --> O4["Linear 1024 → 1000"]
+        O4 --> O5["Softmax\n1000 classes"]
+    end
+
+    subgraph NEW_HEAD["New defect head (trained from scratch)"]
+        direction LR
+        N1["Linear 576 → 128"] --> N2["Hardswish"]
+        N2 --> N3["Dropout 0.2"]
+        N3 --> N4["Linear 128 → 5"]
+        N4 --> N5["Sigmoid\n5 defect scores"]
+    end
+
+    AVG -. "replaced" .-> OLD_HEAD
+    AVG --> NEW_HEAD
+    NEW_HEAD --> OUT(["blur · noise\noverexposure · underexposure\ncompression"])
+```
+
+---
+
+### 3. Transfer Learning — Training Procedure
+
+```mermaid
+flowchart TD
+    PT["MobileNetV3Small\npretrained on ImageNet\ntorchvision weights=DEFAULT"] --> FRZ
+
+    FRZ["Freeze backbone\nrequires_grad = False\nfor all feature layers"] --> REP
+
+    REP["Replace classifier head\nLinear 576→128 → Hardswish\n→ Dropout 0.2 → Linear 128→5 → Sigmoid"] --> PH1
+
+    PH1["Phase 1 — Head only\nTrain new head\nBCE loss · Adam\nhigher lr ~1e-3\non FiveK defect labels"] --> UNF
+
+    UNF["Unfreeze backbone\nrequires_grad = True"] --> PH2
+
+    PH2["Phase 2 — Fine-tune end-to-end\nlow lr ~1e-5\nbackbone + head together"] --> SAVE
+
+    SAVE["Save defect_head.pt\nfull state_dict"]
+```
+
+---
+
+### 4. Hybrid Vector — Weighting & Normalization
+
+```mermaid
+flowchart LR
+    C["clip_vec  512-dim"] --> CN["÷ ‖clip‖  × 1.0"]
+    D["defect_vec  5-dim"] --> DN["÷ ‖defect‖  × 5.0"]
+
+    CN --> CAT["Concat → 517-dim"]
+    DN --> CAT
+
+    CAT --> NORM["÷ ‖vector‖\nfinal L2 normalize"]
+    NORM --> Q(["517-dim query\nready for FAISS dot-product"])
+
+    style C fill:#2a4a7f,color:#fff
+    style D fill:#7f2a2a,color:#fff
+    style Q fill:#2a7f4a,color:#fff
+```
+
+---
+
 ## Performance
 
 | Method | Top-1 Accuracy | Top-5 Mean |
