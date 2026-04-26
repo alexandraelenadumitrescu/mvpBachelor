@@ -251,4 +251,20 @@ DEFAULT_IP = "192.168.1.132"   // override via in-app settings
 
 ## Dataset
 
-3,499 image pairs from the [MIT-Adobe FiveK dataset](https://data.csail.mit.edu/graphics/fivek/) — RAW source images paired with expert-edited versions used as correction targets.
+3,499 image pairs from the [MIT-Adobe FiveK dataset](https://data.csail.mit.edu/graphics/fivek/) — RAW source images paired with expert-edited versions (retouched by Expert C) used as correction targets.
+
+**This repository does not include or redistribute any dataset images.** The FiveK dataset is licensed for research use only and may not be redistributed. To run the server you must download the images yourself:
+
+1. Request access and download from the [official dataset page](https://data.csail.mit.edu/graphics/fivek/).
+2. Place RAW JPEGs in `server/images/raw/` and expert-edited JPEGs in `server/images/edited/`.
+3. Pre-compute hybrid vectors by running the index-build script (or use the provided `hybrid_vectors.npz` if you have access to it separately).
+
+## License
+
+The code in this repository is released under the [MIT License](LICENSE).
+
+The MIT-Adobe FiveK dataset is subject to its own terms — see the [dataset page](https://data.csail.mit.edu/graphics/fivek/) for details. It is **not** included here.
+
+## Design Decisions
+
+Explanations for the key hyperparameter choices (why `DEFECT_WEIGHT=5.0`, why `LUT_SIZE=17`, why the semantic guard threshold is `0.55`, etc.) are documented in [`docs/design-decisions.md`](docs/design-decisions.md).
