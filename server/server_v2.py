@@ -21,6 +21,10 @@ import base64
 import threading
 import time
 import statistics
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
 from io import BytesIO
 from pathlib import Path
 
@@ -30,9 +34,12 @@ import numpy as np
 import open_clip
 import torch
 import torch.nn as nn
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
+
+from blur_api.blur import apply_blur
+from blur_api.gemini import detect_sensitive
 from PIL import Image
 from pydantic import BaseModel
 from scipy.interpolate import LinearNDInterpolator
@@ -55,6 +62,7 @@ CLIP_WEIGHT   = 1.0
 DEFECT_WEIGHT = 5.0
 LUT_STRENGTH  = 0.2
 LUT_SIZE      = 17
+DEFECT_NAMES  = ["blur", "noise", "overexposure", "underexposure", "compression"]
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Device: {device}")
@@ -160,6 +168,10 @@ def _record(key: str, ms: float):
             buf.pop(0)
 
 
+def _load_image(path: str) -> np.ndarray:
+    return np.array(Image.open(path)).astype(np.float32) / 255.0
+
+
 def _precompute_luts():
     """Daemon thread: pre-compute and cache 3D LUTs for all RAW→edited pairs."""
     print(f"LUT pre-computation starting for {len(image_names)} pairs...")
@@ -172,8 +184,8 @@ def _precompute_luts():
         if not os.path.exists(raw_path) or not os.path.exists(edited_path):
             continue
         try:
-            raw    = np.array(Image.open(raw_path)).astype(np.float32)    / 255.0
-            edited = np.array(Image.open(edited_path)).astype(np.float32) / 255.0
+            raw    = _load_image(raw_path)
+            edited = _load_image(edited_path)
             lut_cache[name] = extract_colour_lut(raw, edited)
             computed += 1
             if computed % 100 == 0:
@@ -198,7 +210,7 @@ def _precompute_aesthetic_scores():
         if not os.path.exists(edited_path):
             continue
         try:
-            img = np.array(Image.open(edited_path)).astype(np.float32) / 255.0
+            img = _load_image(edited_path)
             aesthetic_cache[name] = compute_aesthetic_score(img)
             computed += 1
             if computed % 100 == 0:
@@ -234,6 +246,12 @@ def _auto_k(X: np.ndarray, max_k: int = 8) -> int:
 # ============================================================
 
 app = FastAPI(title="PhotoMatch Server")
+
+from auth.router import router as auth_router
+from auth.dependencies import get_current_active_user
+from auth import database, models
+models.Base.metadata.create_all(bind=database.engine)
+app.include_router(auth_router, prefix="/auth", tags=["auth"])
 
 app.add_middleware(
     CORSMiddleware,
@@ -406,6 +424,15 @@ def apply_lut_moderated(image, lut, strength=LUT_STRENGTH):
     return image * (1 - strength) + apply_lut(image, lut) * strength
 
 
+def _correct_image(img_np: np.ndarray, basename: str) -> tuple[np.ndarray, np.ndarray, str]:
+    """Apply CLAHE then 3D LUT. Returns (clahe_result, final_result, note)."""
+    corrected = correct_clahe(img_np)
+    lut = lut_cache.get(basename)
+    if lut is not None:
+        return corrected, apply_lut_moderated(corrected, lut), ""
+    return corrected, corrected, f"LUT not yet cached for {basename} — CLAHE only"
+
+
 def compute_aesthetic_score(img_np: np.ndarray) -> float:
     """
     Returns aesthetic quality score in [0, 1].
@@ -526,6 +553,11 @@ class StyleProcessResponse(ProcessResponse):
     style_matched:  bool
     style_fallback: bool
 
+class MailSendResponse(BaseModel):
+    sent: bool
+    to: str
+    photos_attached: int
+
 class ClusterRequest(BaseModel):
     vectors:    list[list[float]]
     n_clusters: int | None = None
@@ -589,7 +621,7 @@ def health():
 
 
 @app.post("/search", response_model=SearchResponse)
-def search(req: SearchRequest):
+def search(req: SearchRequest, current_user = Depends(get_current_active_user)):
     """Search by a pre-computed hybrid vector (e.g. from the Android client)."""
     expected_dim = weighted_matrix_norm.shape[1]
     if len(req.vector) != expected_dim:
@@ -629,6 +661,7 @@ def search_and_correct(
     req: SearchAndCorrectRequest,
     aesthetic_weight: float = 0.3,
     include_images:   bool  = True,
+    current_user = Depends(get_current_active_user),
 ):
     """
     Fast path: Android pre-computes CLIP+defect vectors locally and sends the 517-dim
@@ -666,8 +699,8 @@ def search_and_correct(
     if include_images:
         raw_path    = os.path.join(RAW_DIR,    retrieved_basename + ".jpg")
         edited_path = os.path.join(EDITED_DIR, retrieved_basename + ".jpg")
-        raw_retr    = np.array(Image.open(raw_path)).astype(np.float32)    / 255.0
-        edited_retr = np.array(Image.open(edited_path)).astype(np.float32) / 255.0
+        raw_retr    = _load_image(raw_path)
+        edited_retr = _load_image(edited_path)
         raw_b64     = np_to_base64(raw_retr)
         edited_b64  = np_to_base64(edited_retr)
 
@@ -682,7 +715,7 @@ def search_and_correct(
 
 
 @app.post("/apply_lut", response_model=ApplyLutResponse)
-def apply_lut_endpoint(req: ApplyLutRequest):
+def apply_lut_endpoint(req: ApplyLutRequest, current_user = Depends(get_current_active_user)):
     """
     Apply CLAHE + cached 3D LUT to a base64-encoded image.
     Separated from FAISS retrieval so the client can reuse vectors
@@ -692,16 +725,8 @@ def apply_lut_endpoint(req: ApplyLutRequest):
     pil_img   = Image.open(BytesIO(img_bytes)).convert("RGB")
     img_np    = np.array(pil_img).astype(np.float32) / 255.0
 
-    corrected  = correct_clahe(img_np)
-    lut        = lut_cache.get(req.retrieved_basename)
-    lut_cached = lut is not None
-    note       = ""
-
-    if lut_cached:
-        final = apply_lut_moderated(corrected, lut)
-    else:
-        final = corrected
-        note  = f"LUT not yet cached for {req.retrieved_basename} — CLAHE only"
+    _, final, note = _correct_image(img_np, req.retrieved_basename)
+    lut_cached     = note == ""
 
     return ApplyLutResponse(
         final_b64  = np_to_base64(final),
@@ -711,7 +736,7 @@ def apply_lut_endpoint(req: ApplyLutRequest):
 
 
 @app.post("/process", response_model=ProcessResponse)
-async def process(file: UploadFile = File(...), aesthetic_weight: float = 0.3):
+async def process(file: UploadFile = File(...), aesthetic_weight: float = 0.3, current_user = Depends(get_current_active_user)):
     """
     Full pipeline:
     1. Extract CLIP (512) + defect (5) vectors
@@ -725,33 +750,18 @@ async def process(file: UploadFile = File(...), aesthetic_weight: float = 0.3):
     pil_img  = Image.open(BytesIO(contents)).convert("RGB")
     img_np   = np.array(pil_img).astype(np.float32) / 255.0
 
-    # Vectors
     clip_vec, defect_vec = get_hybrid_vector(pil_img)
-    defect_names = ["blur", "noise", "overexposure", "underexposure", "compression"]
-    defects_dict = {name: float(val) for name, val in zip(defect_names, defect_vec)}
+    defects_dict = {name: float(val) for name, val in zip(DEFECT_NAMES, defect_vec)}
 
-    # Retrieval with aesthetic re-ranking
     candidates = retrieve_similar(clip_vec, defect_vec, top_k=10)
     retrieved_basename, similarity, match_aes = _aesthetic_rerank(candidates, aesthetic_weight)
 
-    # CLAHE
-    corrected = correct_clahe(img_np)
-
-    # Load reference images
     raw_path    = os.path.join(RAW_DIR,    retrieved_basename + ".jpg")
     edited_path = os.path.join(EDITED_DIR, retrieved_basename + ".jpg")
-    raw_retr    = np.array(Image.open(raw_path)).astype(np.float32)    / 255.0
-    edited_retr = np.array(Image.open(edited_path)).astype(np.float32) / 255.0
+    raw_retr    = _load_image(raw_path)
+    edited_retr = _load_image(edited_path)
 
-    # LUT — use cache; fall back to CLAHE-only if not yet pre-computed
-    lut  = lut_cache.get(retrieved_basename)
-    note = ""
-    if lut is not None:
-        final = apply_lut_moderated(corrected, lut)
-    else:
-        final = corrected  # CLAHE applied; LUT not yet available
-        note  = f"LUT not yet cached for {retrieved_basename} — CLAHE correction applied only"
-        print(f"  [/process] LUT cache miss: {retrieved_basename}")
+    corrected, final, note = _correct_image(img_np, retrieved_basename)
 
     return ProcessResponse(
         original_b64          = np_to_base64(img_np),
@@ -768,7 +778,7 @@ async def process(file: UploadFile = File(...), aesthetic_weight: float = 0.3):
 
 
 @app.post("/batch/process", response_model=BatchResponse)
-async def batch_process(files: list[UploadFile] = File(...)):
+async def batch_process(files: list[UploadFile] = File(...), current_user = Depends(get_current_active_user)):
     """
     Full correction pipeline applied to each uploaded image.
     Identical to /process but accepts up to 100 images in one request.
@@ -810,7 +820,7 @@ async def batch_process(files: list[UploadFile] = File(...)):
 
 
 @app.post("/cluster", response_model=ClusterResponse)
-def cluster_photos(req: ClusterRequest):
+def cluster_photos(req: ClusterRequest, current_user = Depends(get_current_active_user)):
     """K-Means clustering of 517-dim hybrid vectors. Max 500 vectors."""
     n = len(req.vectors)
     if n > 500:
@@ -841,7 +851,7 @@ def cluster_photos(req: ClusterRequest):
 
 
 @app.post("/style/upload", response_model=StyleUploadResponse)
-async def style_upload(files: list[UploadFile] = File(...)):
+async def style_upload(files: list[UploadFile] = File(...), current_user = Depends(get_current_active_user)):
     """
     Encode up to 20 reference photos into 517-dim style vectors and store them
     under a new session ID.
@@ -863,6 +873,7 @@ async def style_upload(files: list[UploadFile] = File(...)):
 async def style_process(
     file:       UploadFile = File(...),
     session_id: str        = Form(...),
+    current_user = Depends(get_current_active_user),
 ):
     """
     Full pipeline with style-constrained retrieval:
@@ -880,8 +891,7 @@ async def style_process(
     img_np   = np.array(pil_img).astype(np.float32) / 255.0
 
     clip_vec, defect_vec = get_hybrid_vector(pil_img)
-    defect_names = ["blur", "noise", "overexposure", "underexposure", "compression"]
-    defects_dict = {n: float(v) for n, v in zip(defect_names, defect_vec)}
+    defects_dict = {n: float(v) for n, v in zip(DEFECT_NAMES, defect_vec)}
 
     query      = build_hybrid_query(clip_vec, defect_vec)       # (517,)
     style_vecs = style_profiles[session_id]                     # (N, 517)
@@ -892,20 +902,12 @@ async def style_process(
 
     retrieved_basename = image_names[best_local]
 
-    # CLAHE + LUT (identical to /process)
-    corrected   = correct_clahe(img_np)
     raw_path    = os.path.join(RAW_DIR,    retrieved_basename + ".jpg")
     edited_path = os.path.join(EDITED_DIR, retrieved_basename + ".jpg")
-    raw_retr    = np.array(Image.open(raw_path)).astype(np.float32)    / 255.0
-    edited_retr = np.array(Image.open(edited_path)).astype(np.float32) / 255.0
+    raw_retr    = _load_image(raw_path)
+    edited_retr = _load_image(edited_path)
 
-    lut  = lut_cache.get(retrieved_basename)
-    note = ""
-    if lut is not None:
-        final = apply_lut_moderated(corrected, lut)
-    else:
-        final = corrected
-        note  = f"LUT not yet cached for {retrieved_basename} — CLAHE only"
+    corrected, final, note = _correct_image(img_np, retrieved_basename)
 
     return StyleProcessResponse(
         original_b64  = np_to_base64(img_np),
@@ -923,7 +925,7 @@ async def style_process(
 
 
 @app.post("/style/search", response_model=StyleSearchResponse)
-def style_search(req: StyleSearchRequest):
+def style_search(req: StyleSearchRequest, current_user = Depends(get_current_active_user)):
     """
     Style-constrained FAISS retrieval using a pre-computed 517-dim hybrid vector.
     Returns only retrieval metadata — client calls /apply_lut for the actual correction.
@@ -955,7 +957,7 @@ def style_search(req: StyleSearchRequest):
 
 
 @app.get("/image/raw/{basename}")
-def get_raw_image(basename: str):
+def get_raw_image(basename: str, current_user = Depends(get_current_active_user)):
     basename = Path(basename).name
     path = os.path.join(RAW_DIR, basename + ".jpg")
     if not os.path.exists(path):
@@ -964,7 +966,7 @@ def get_raw_image(basename: str):
 
 
 @app.get("/image/edited/{basename}")
-def get_edited_image(basename: str):
+def get_edited_image(basename: str, current_user = Depends(get_current_active_user)):
     basename = Path(basename).name
     path = os.path.join(EDITED_DIR, basename + ".jpg")
     if not os.path.exists(path):
@@ -973,7 +975,7 @@ def get_edited_image(basename: str):
 
 
 @app.get("/lut/{basename}", response_model=LutResponse)
-def get_lut(basename: str):
+def get_lut(basename: str, current_user = Depends(get_current_active_user)):
     """
     Return the 3D LUT for a given reference image basename as a flat base64-encoded
     float32 byte array.  Shape: (LUT_SIZE, LUT_SIZE, LUT_SIZE, 3) → flattened.
@@ -989,8 +991,8 @@ def get_lut(basename: str):
         if not os.path.exists(raw_path) or not os.path.exists(edited_path):
             raise HTTPException(status_code=404, detail=f"Images not found for '{basename}'")
         t_compute = time.perf_counter()
-        raw    = np.array(Image.open(raw_path)).astype(np.float32)    / 255.0
-        edited = np.array(Image.open(edited_path)).astype(np.float32) / 255.0
+        raw    = _load_image(raw_path)
+        edited = _load_image(edited_path)
         lut    = extract_colour_lut(raw, edited)
         lut_cache[basename] = lut
         _record("lut_compute_ms", (time.perf_counter() - t_compute) * 1000)
@@ -1004,7 +1006,7 @@ def get_lut(basename: str):
 
 
 @app.post("/style/vectors", response_model=StyleVectorsResponse)
-def style_vectors(req: StyleVectorsRequest):
+def style_vectors(req: StyleVectorsRequest, current_user = Depends(get_current_active_user)):
     """
     Store pre-computed 517-dim hybrid vectors as a style profile.
     Android computes CLIP + defect vectors locally and sends only the numbers —
@@ -1022,6 +1024,59 @@ def style_vectors(req: StyleVectorsRequest):
     session_id = req.session_id or str(uuid.uuid4())
     style_profiles[session_id] = vecs
     return StyleVectorsResponse(session_id=session_id, vectors_stored=len(vecs))
+
+
+# ============================================================
+# BLUR SENSITIVE
+# ============================================================
+
+@app.post("/blur-sensitive")
+async def blur_sensitive(file: UploadFile = File(...), current_user = Depends(get_current_active_user)):
+    """Send image to Gemini, detect sensitive regions, blur them with OpenCV."""
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="File must be an image")
+    image_bytes = await file.read()
+    regions = detect_sensitive(image_bytes)
+    result = apply_blur(image_bytes, regions)
+    return Response(content=result, media_type="image/jpeg")
+
+
+# ============================================================
+# MAIL
+# ============================================================
+
+@app.post("/mail/send", response_model=MailSendResponse)
+async def mail_send(
+    to_email: str = Form(...),
+    subject:  str = Form(default="Fotografiile tale"),
+    message:  str = Form(default=""),
+    files:    list[UploadFile] = File(default=[]),
+    current_user = Depends(get_current_active_user),
+):
+    smtp_host = os.environ.get("SMTP_HOST", "smtp.gmail.com")
+    smtp_port = int(os.environ.get("SMTP_PORT", 587))
+    smtp_user = os.environ["SMTP_USER"]
+    smtp_pass = os.environ["SMTP_PASSWORD"]
+
+    msg = MIMEMultipart()
+    msg["From"]    = smtp_user
+    msg["To"]      = to_email
+    msg["Subject"] = subject
+    msg.attach(MIMEText(message or f"Fotografii trimise de {current_user.email}", "plain"))
+
+    for f in files:
+        data = await f.read()
+        img_part = MIMEImage(data, name=f.filename or "photo.jpg")
+        img_part.add_header("Content-Disposition", "attachment", filename=f.filename or "photo.jpg")
+        msg.attach(img_part)
+
+    with smtplib.SMTP(smtp_host, smtp_port) as server:
+        server.ehlo()
+        server.starttls()
+        server.login(smtp_user, smtp_pass)
+        server.sendmail(smtp_user, to_email, msg.as_string())
+
+    return MailSendResponse(sent=True, to=to_email, photos_attached=len(files))
 
 
 # ============================================================
