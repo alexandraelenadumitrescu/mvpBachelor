@@ -30,6 +30,7 @@ from pathlib import Path
 
 import cv2
 import faiss
+import tempfile
 import numpy as np
 import open_clip
 import torch
@@ -558,6 +559,11 @@ class MailSendResponse(BaseModel):
     to: str
     photos_attached: int
 
+class DeliveryRunResponse(BaseModel):
+    matched: int
+    sent:    int
+    failed:  int
+
 class ClusterRequest(BaseModel):
     vectors:    list[list[float]]
     n_clusters: int | None = None
@@ -1077,6 +1083,88 @@ async def mail_send(
         server.sendmail(smtp_user, to_email, msg.as_string())
 
     return MailSendResponse(sent=True, to=to_email, photos_attached=len(files))
+
+
+# ============================================================
+# DELIVERY
+# ============================================================
+
+# Import PhotoMailer matcher + face_db from sibling directory
+_PHOTO_MAILER_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "..", "photo_mailer"))
+if _PHOTO_MAILER_DIR not in sys.path:
+    sys.path.insert(0, _PHOTO_MAILER_DIR)
+
+try:
+    from matcher  import match_photos as _match_photos
+    from face_db  import load_db      as _load_face_db
+    _PHOTO_MAILER_AVAILABLE = True
+except ImportError:
+    _PHOTO_MAILER_AVAILABLE = False
+
+
+@app.post("/delivery/run", response_model=DeliveryRunResponse)
+async def delivery_run(
+    photos: list[UploadFile] = File(...),
+    current_user = Depends(get_current_active_user),
+):
+    """
+    Receive event photos, match faces against the pre-built face DB,
+    and send matched photos to each recognised person via email.
+    Requires: FACE_DB_PATH, SMTP_USER, SMTP_PASSWORD env vars.
+    """
+    if not _PHOTO_MAILER_AVAILABLE:
+        raise HTTPException(500, "PhotoMailer not available — check photo_mailer/ path")
+
+    face_db_path = os.environ.get("FACE_DB_PATH")
+    if not face_db_path or not os.path.exists(face_db_path):
+        raise HTTPException(500, "FACE_DB_PATH not set or file not found")
+
+    smtp_host = os.environ.get("SMTP_HOST", "smtp.gmail.com")
+    smtp_port = int(os.environ.get("SMTP_PORT", 587))
+    smtp_user = os.environ["SMTP_USER"]
+    smtp_pass = os.environ["SMTP_PASSWORD"]
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        for photo in photos:
+            data = await photo.read()
+            fname = photo.filename or f"{uuid.uuid4()}.jpg"
+            with open(os.path.join(tmp_dir, fname), "wb") as fh:
+                fh.write(data)
+
+        db      = _load_face_db(face_db_path)
+        matches = _match_photos(tmp_dir, db)
+
+        matched = sum(len(paths) for paths in matches.values())
+        sent    = 0
+        failed  = 0
+
+        with smtplib.SMTP(smtp_host, smtp_port) as server:
+            server.ehlo()
+            server.starttls()
+            server.login(smtp_user, smtp_pass)
+            for to_email, photo_paths in matches.items():
+                try:
+                    msg = MIMEMultipart()
+                    msg["From"]    = smtp_user
+                    msg["To"]      = to_email
+                    msg["Subject"] = "Your event photos"
+                    msg.attach(MIMEText(
+                        f"Hi,\n\nWe found {len(photo_paths)} photo(s) of you. See attachments!\n\nBest regards",
+                        "plain",
+                    ))
+                    for path in photo_paths:
+                        with open(path, "rb") as fh:
+                            img_part = MIMEImage(fh.read())
+                        img_part.add_header("Content-Disposition", "attachment",
+                                            filename=os.path.basename(path))
+                        msg.attach(img_part)
+                    server.sendmail(smtp_user, to_email, msg.as_string())
+                    sent += 1
+                except Exception as exc:
+                    print(f"  [/delivery/run] send to {to_email} failed: {exc}")
+                    failed += 1
+
+    return DeliveryRunResponse(matched=matched, sent=sent, failed=failed)
 
 
 # ============================================================
