@@ -64,62 +64,74 @@
 
 ## 3. Capitolul 3 — Proiectarea arhitecturii soluției
 
-Soluția este compusă din **trei componente principale** care se completează reciproc:
+Soluția urmează un model **client-server** clasic, la care se adaugă un instrument de automatizare standalone:
 
-| # | Componentă | Scop |
+| Rol | Tehnologie | Cuprinde |
 |---|---|---|
-| 1 | **PhotoMatch** | Corecție automată fotografii — Android + server FastAPI |
-| 2 | **BlurAPI** | Detecție și blurare conținut sensibil — Gemini Vision + YOLOv8 |
-| 3 | **PhotoMailer** | Distribuție automată poze eveniment — FaceNet + scraping + email |
+| **Client** | Android app (Java) | Corecție foto, blurare conținut sensibil, trimitere email, delivery |
+| **Server** | FastAPI (Python) | JWT auth, FAISS, LUT, BlurAPI, mail endpoint, delivery/run |
+| **Tool autonom** | PhotoMailer CLI (Python) | Scraping angajați, FaceNet matching, distribuție bulk email fără UI |
+
+> **De ce nu sunt 3 proiecte separate?** BlurAPI și funcționalitatea de email sunt module integrate în server, apelate direct de clientul Android. PhotoMailer CLI rezolvă același scenariu de distribuție email dar pentru administratori, automatizat, fără interacțiune — reutilizând codul de matching și mail deja existent pe server.
 
 ---
 
 ### 3.1 Arhitectura generală a soluției
 
-#### Diagrama de ansamblu
+#### Diagrama de ansamblu — model client-server
 
 ```mermaid
 flowchart TD
-    subgraph ANDROID["📱 Android App (Java)"]
-        direction LR
-        ML["On-Device ML\nCLIP ViT-B-32\nMobileNetV3Small"]
-        AC["ApiClient\nOkHttp + AuthInterceptor"]
-        UI["Activities\nPhotoMatch / Blur / Delivery"]
-        DB_LOCAL["Room SQLite\nFavorite Photos"]
-        ML -->|"517-dim vector"| AC
-        UI --> AC
-        UI --> DB_LOCAL
-    end
-
-    subgraph SERVER["🖥️ FastAPI Server (Python)"]
+    subgraph CLIENT["📱 Client — Android App"]
         direction TB
-        AUTH_MOD["auth/\nJWT Register/Login\nSQLite users.db"]
-        PM_MOD["PhotoMatch\nFAISS + CLAHE + LUT\n3.499 vectori referință"]
-        BLUR_MOD["BlurAPI\nGemini Vision\nYOLOv8 local"]
-        MAIL_MOD["Mail\nSMTP STARTTLS\nMIME attachments"]
+        subgraph ONDEV["On-Device (nu pleacă date)"]
+            CLIP_DEV["CLIP ViT-B-32\nTFLite"]
+            MNV3_DEV["MobileNetV3Small\nTFLite"]
+            LUT_CACHE["LUT Cache local\n17³ × 3 float32"]
+        end
+        subgraph FEATURES["Funcționalități"]
+            F1["📷 Corecție foto"]
+            F2["🔒 Blur conținut sensibil"]
+            F3["📧 Trimitere email"]
+            F4["🚀 Delivery poze eveniment"]
+        end
+        AC["ApiClient\nOkHttp + AuthInterceptor JWT"]
+        DB_LOCAL["Room SQLite\nFavorite Photos"]
     end
 
-    subgraph PHOTOMAILER["🐍 PhotoMailer CLI (Python)"]
-        direction LR
-        SCRAPE["Scraper\nBeautifulSoup"]
-        FACEDB["Face DB\nFaceNet 512-dim\npickle"]
-        MATCHER["Matcher\nCosine sim ≥ 0.60"]
-        MAILER_CLI["Mailer\nsmtplib bulk"]
-        SCRAPE --> FACEDB --> MATCHER --> MAILER_CLI
+    subgraph SERVER["🖥️ Server — FastAPI"]
+        direction TB
+        AUTH_S["🔑 auth/\nJWT + bcrypt\nSQLite users.db"]
+        FAISS_S["🔍 FAISS IndexFlatIP\n3.499 vectori × 517 dim"]
+        LUT_S["🎨 CLAHE + LUT 3D\npre-compute background"]
+        BLUR_S["🌫️ BlurAPI\nGemini Vision / YOLOv8"]
+        MAIL_S["📨 Mail SMTP\nMIME attachments"]
+        DEL_S["👥 Delivery/run\nFaceNet matching + bulk mail"]
     end
 
     subgraph EXTERNAL["☁️ Servicii externe"]
-        GEMINI["Gemini Vision API\ngemini-1.5-flash"]
-        SMTP_SRV["SMTP Server\nGmail / orice provider"]
+        GEM["Gemini Vision API"]
+        SMTP["SMTP Server"]
     end
 
-    AC -->|"HTTP + Bearer JWT"| SERVER
-    AUTH_MOD -->|"Depends(get_current_active_user)\nprotejează toate endpoint-urile"| PM_MOD
-    AUTH_MOD --> BLUR_MOD
-    AUTH_MOD --> MAIL_MOD
-    BLUR_MOD -->|"imagine → bounding boxes"| GEMINI
-    MAIL_MOD -->|"email + atașamente"| SMTP_SRV
-    MAILER_CLI --> SMTP_SRV
+    subgraph STANDALONE["🐍 PhotoMailer CLI (tool autonom)"]
+        direction LR
+        SC["Scraper"] --> FDB["Face DB\nFaceNet pickle"]
+        FDB --> MT["Matcher\ncosine ≥ 0.60"]
+        MT --> ML["Mailer bulk"]
+    end
+
+    CLIENT -->|"HTTP + Bearer JWT\n(numai vectori sau imagini\nconform funcționalității)"| SERVER
+    AUTH_S -->|"Depends — protejează\ntoate endpoint-urile"| FAISS_S
+    BLUR_S -->|"imagine"| GEM
+    MAIL_S --> SMTP
+    DEL_S --> SMTP
+    STANDALONE -->|"SMTP direct\n(fără Android)"| SMTP
+
+    style CLIENT fill:#e8f5e9,stroke:#388e3c
+    style SERVER fill:#e3f2fd,stroke:#1976d2
+    style STANDALONE fill:#fff8e1,stroke:#f57f17
+    style EXTERNAL fill:#fce4ec,stroke:#c62828
 ```
 
 #### Fluxul principal PhotoMatch (sequence diagram)
@@ -182,53 +194,55 @@ flowchart LR
 ### 3.2 Diagrama de cazuri de utilizare
 
 ```mermaid
-flowchart TD
-    ACT1["👤 Utilizator autentificat"]
-    ACT2["🔧 Administrator CLI"]
-    ACT_GEM["☁️ Gemini Vision API"]
-    ACT_SMTP["📧 SMTP Server"]
+flowchart LR
+    ACT1["👤 Utilizator\nautentificat\n(Android)"]
+    ACT2["🔧 Administrator\n(CLI)"]
+    ACT_GEM["☁️ Gemini\nVision API"]
+    ACT_SMTP["📧 SMTP\nServer"]
 
-    subgraph UC_AUTH["Autentificare"]
-        UC1("Înregistrare cont")
-        UC2("Autentificare / Login")
-        UC3("Vizualizare profil")
+    subgraph CLIENT_UC["Client Android"]
+        subgraph UC_AUTH["Autentificare"]
+            UC1("Înregistrare cont")
+            UC2("Login → JWT token")
+            UC3("Vizualizare profil")
+        end
+
+        subgraph UC_CORRECT["Corecție foto"]
+            UC4("Corecție fotografie unică")
+            UC5("Procesare batch")
+            UC6("Mod burst + best-shot")
+            UC7("Stil personalizat")
+            UC8("Clustering fotografii")
+            UC9("Grupare după persoane")
+            UC10("Gestionare favorite")
+        end
+
+        subgraph UC_BLUR["Blurare conținut sensibil"]
+            UC11("Detector Gemini Vision")
+            UC12("Detector local YOLOv8")
+        end
+
+        subgraph UC_DIST["Distribuție"]
+            UC13("Trimitere email manual\ndin Android")
+            UC14("Delivery poze eveniment\n/delivery/run")
+        end
     end
 
-    subgraph UC_PM["PhotoMatch"]
-        UC4("Corecție fotografie unică")
-        UC5("Procesare batch\npână la 100 imagini")
-        UC6("Mod burst\nclusterizare + best-shot")
-        UC7("Căutare cu stil personalizat")
-        UC8("Clustering fotografii")
-        UC9("Grupare după persoane\n(detecție facială)")
-        UC10("Gestionare favorite")
+    subgraph CLI_UC["PhotoMailer CLI (autonom)"]
+        UC15("Scraping angajați")
+        UC16("Construire face DB")
+        UC17("Matching fețe eveniment")
+        UC18("Email bulk automat")
+        UC15 --> UC16 --> UC17 --> UC18
     end
 
-    subgraph UC_BLUR["BlurAPI"]
-        UC11("Blurare conținut sensibil\ndetector Gemini")
-        UC12("Blurare conținut sensibil\ndetector local YOLOv8")
-    end
+    ACT1 --> CLIENT_UC
+    ACT2 --> CLI_UC
 
-    subgraph UC_MAIL["Email"]
-        UC13("Trimitere fotografii\ndin Android")
-    end
-
-    subgraph UC_CLI["PhotoMailer CLI"]
-        UC14("Scraping angajați\nde pe pagina web")
-        UC15("Construire bază\nde date faciale")
-        UC16("Matching fețe\nîn poze eveniment")
-        UC17("Distribuție automată\nemail bulk")
-    end
-
-    ACT1 --> UC_AUTH
-    ACT1 --> UC_PM
-    ACT1 --> UC_BLUR
-    ACT1 --> UC_MAIL
-    ACT2 --> UC_CLI
-
-    UC11 -.->|"include"| ACT_GEM
-    UC13 -.->|"include"| ACT_SMTP
-    UC17 -.->|"include"| ACT_SMTP
+    UC11 -.->|include| ACT_GEM
+    UC13 -.->|include| ACT_SMTP
+    UC14 -.->|include| ACT_SMTP
+    UC18 -.->|include| ACT_SMTP
 ```
 
 ---
