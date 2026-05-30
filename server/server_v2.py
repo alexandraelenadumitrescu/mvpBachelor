@@ -40,7 +40,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
 
 from blur_api.blur import apply_blur
-from blur_api.gemini import detect_sensitive
+from blur_api.gemini import detect_sensitive as _detect_gemini
+from blur_api.local_detector import detect_sensitive as _detect_local
 from PIL import Image
 from pydantic import BaseModel
 from scipy.interpolate import LinearNDInterpolator
@@ -1037,12 +1038,22 @@ def style_vectors(req: StyleVectorsRequest, current_user = Depends(get_current_a
 # ============================================================
 
 @app.post("/blur-sensitive")
-async def blur_sensitive(file: UploadFile = File(...), current_user = Depends(get_current_active_user)):
-    """Send image to Gemini, detect sensitive regions, blur them with OpenCV."""
+async def blur_sensitive(
+    file:     UploadFile = File(...),
+    detector: str        = "gemini",
+    current_user = Depends(get_current_active_user),
+):
+    """
+    Detect sensitive regions and blur them.
+    ?detector=gemini  — Gemini 1.5 Flash vision API (default)
+    ?detector=local   — YOLOv8 nano on-server, no external API call
+    """
     if not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image")
+    if detector not in ("gemini", "local"):
+        raise HTTPException(status_code=400, detail="detector must be 'gemini' or 'local'")
     image_bytes = await file.read()
-    regions = detect_sensitive(image_bytes)
+    regions = _detect_local(image_bytes) if detector == "local" else _detect_gemini(image_bytes)
     result = apply_blur(image_bytes, regions)
     return Response(content=result, media_type="image/jpeg")
 
