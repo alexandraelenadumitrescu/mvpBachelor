@@ -204,56 +204,62 @@ flowchart LR
 
 ### 3.2 Diagrama de cazuri de utilizare
 
+#### Diagrama 1 — Autentificare
+
 ```mermaid
 flowchart LR
-    ACT1["👤 Utilizator\nautentificat\n(Android)"]
-    ACT2["🔧 Administrator\n(CLI)"]
+    ACT["👤 Utilizator\nnewautentificat"]
+
+    subgraph AUTH["Autentificare"]
+        UC1("Înregistrare cont nou\nPOST /auth/register")
+        UC2("Login\nPOST /auth/login → JWT token")
+        UC3("Vizualizare profil\nGET /auth/me")
+    end
+
+    ACT --> UC1
+    ACT --> UC2
+    UC2 -->|"token salvat automat\n→ deblocat"| UC3
+```
+
+#### Diagrama 2 — Client Android autentificat
+
+```mermaid
+flowchart LR
+    ACT["👤 Utilizator\nautentificat"]
     ACT_GEM["☁️ Gemini\nVision API"]
     ACT_SMTP["📧 SMTP\nServer"]
 
-    subgraph CLIENT_UC["Client Android"]
-        subgraph UC_AUTH["Autentificare"]
-            UC1("Înregistrare cont")
-            UC2("Login → JWT token")
-            UC3("Vizualizare profil")
-        end
+    subgraph CORRECT["Corecție foto"]
+        UC1("Fotografie unică\n/search_and_correct")
+        UC2("Batch\n/batch/process")
+        UC3("Burst + best-shot")
+        UC4("Stil personalizat\n/style/search")
+        UC5("Clustering\n/cluster")
+        UC6("Grupare după persoane")
+        UC7("Gestionare favorite")
+    end
 
-        subgraph UC_CORRECT["Corecție foto"]
-            UC4("Corecție fotografie unică")
-            UC5("Procesare batch")
-            UC6("Mod burst + best-shot")
-            UC7("Stil personalizat")
-            UC8("Clustering fotografii")
-            UC9("Grupare după persoane")
-            UC10("Gestionare favorite")
-        end
+    subgraph BLUR["Blurare conținut sensibil\nPOST /blur-sensitive"]
+        UC8("Detector Gemini Vision\n?detector=gemini")
+        UC9("Detector local YOLOv8\n?detector=local")
+    end
 
-        subgraph UC_BLUR["Blurare conținut sensibil"]
-            UC11("Detector Gemini Vision")
-            UC12("Detector local YOLOv8")
-        end
-
-        subgraph UC_DIST["Distribuție"]
-            UC13("Trimitere email manual\ndin Android")
-            UC14("Delivery complet din Android\nURL angajați → scrape → FaceNet → email")
+    subgraph DIST["Distribuție"]
+        UC10("Email manual\nPOST /mail/send")
+        subgraph DEL["Delivery complet\nPOST /delivery/run"]
+            D1["Scraping angajați"] --> D2["FaceNet DB\nin-memory"]
+            D2 --> D3["Matching\ncosine ≥ 0.60"]
+            D3 --> D4["Email bulk"]
         end
     end
 
-    subgraph CLI_UC["PhotoMailer CLI (autonom)"]
-        UC15("Scraping angajați")
-        UC16("Construire face DB")
-        UC17("Matching fețe eveniment")
-        UC18("Email bulk automat")
-        UC15 --> UC16 --> UC17 --> UC18
-    end
+    ACT --> CORRECT
+    ACT --> BLUR
+    ACT --> DIST
 
-    ACT1 --> CLIENT_UC
-    ACT2 --> CLI_UC
-
-    UC11 -.->|include| ACT_GEM
-    UC13 -.->|include| ACT_SMTP
-    UC14 -.->|include| ACT_SMTP
-    UC18 -.->|include| ACT_SMTP
+    UC8 -.->|include| ACT_GEM
+    UC10 -.->|include| ACT_SMTP
+    D4 -.->|include| ACT_SMTP
 ```
 
 ---
