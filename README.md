@@ -24,9 +24,12 @@
 | Componentă | Adăugat față de `main` |
 |---|---|
 | `server/auth/` | Modul JWT complet: register / login / me, bcrypt, SQLite users.db |
-| `server/blur_api/` | BlurAPI integrat în server: Gemini Vision + YOLOv8 local + benchmark |
-| `server_v2.py` | Toate endpoint-urile protejate cu JWT; endpoint nou `/mail/send` |
-| `android/api/` | `ApiClient` cu `AuthInterceptor`; `ApiService` cu login/register/mail; 4 modele noi |
+| `server/blur_api/` | BlurAPI integrat în server: Gemini Vision + YOLOv8 local + `?detector=` |
+| `server/photo_mailer/` | Modul delivery integrat în server: scraper BS4 + FaceNet DB + matcher + mailer |
+| `server_v2.py` | Toate endpoint-urile protejate cu JWT; `/mail/send`; `/delivery/run` pipeline complet; `GET /mock-employees` |
+| `android/api/` | `ApiClient` cu `AuthInterceptor`; `ApiService` cu login/register/mail/delivery; 6 modele noi |
+| `photomatch-lite/` | Proiect Android demonstrativ cu pattern `BaseApiActivity<TReq,TRes>` — 3 activități, fiecare sub 50 linii |
+| `FLOWS.md` | Diagrame detaliate pentru toate activitățile Android și toate endpoint-urile server |
 | Refactorizare server | Helper-e `_load_image()`, `_correct_image()`, `DEFECT_NAMES` — −18 linii cod duplicat |
 
 ---
@@ -45,6 +48,8 @@
 | SciPy + scikit-learn | Interpolare LUT 3D, K-Means clustering |
 | google-generativeai | Gemini Vision API (BlurAPI) |
 | ultralytics | YOLOv8 nano (detector local BlurAPI) |
+| deepface | FaceNet 512-dim embeddings (delivery pipeline) |
+| beautifulsoup4 | Scraping pagini HTML angajați |
 | python-jose + passlib | JWT HS256 + bcrypt hashing |
 | SQLAlchemy | ORM SQLite pentru users.db |
 | smtplib | Trimitere email SMTP cu atașamente |
@@ -106,7 +111,13 @@ flowchart TD
         LUT_S["🎨 CLAHE + LUT 3D\npre-compute background"]
         BLUR_S["🌫️ BlurAPI\nGemini Vision / YOLOv8"]
         MAIL_S["📨 Mail SMTP\nMIME attachments"]
-        DEL_S["👥 Delivery/run\nFaceNet matching + bulk mail"]
+        subgraph DEL_S["👥 photo_mailer/ (integrat în server)"]
+            direction LR
+            SC2["Scraper BS4"] --> FDB2["FaceNet DB\nin-memory"]
+            FDB2 --> MT2["Matcher\ncosine ≥ 0.60"]
+            MT2 --> ML2["Mailer bulk"]
+        end
+        MOCK_S["🌐 GET /mock-employees\nHTML mock angajați"]
     end
 
     subgraph EXTERNAL["☁️ Servicii externe"]
@@ -125,7 +136,7 @@ flowchart TD
     AUTH_S -->|"Depends — protejează\ntoate endpoint-urile"| FAISS_S
     BLUR_S -->|"imagine"| GEM
     MAIL_S --> SMTP
-    DEL_S --> SMTP
+    ML2 --> SMTP
     STANDALONE -->|"SMTP direct\n(fără Android)"| SMTP
 
     style CLIENT fill:#e8f5e9,stroke:#388e3c
@@ -224,7 +235,7 @@ flowchart LR
 
         subgraph UC_DIST["Distribuție"]
             UC13("Trimitere email manual\ndin Android")
-            UC14("Delivery poze eveniment\n/delivery/run")
+            UC14("Delivery complet din Android\nURL angajați → scrape → FaceNet → email")
         end
     end
 
@@ -589,7 +600,13 @@ Swagger UI: `http://localhost:8000/docs` — butonul **Authorize** permite testa
 
 | Metodă | Endpoint | Descriere |
 |--------|----------|-----------|
-| `POST` | `/mail/send` | Trimite fotografii ca atașamente email |
+| `POST` | `/mail/send` | Trimite fotografii ca atașamente email (destinatar ales manual) |
+
+### Delivery (necesită JWT)
+
+| Metodă | Endpoint | Descriere |
+|--------|----------|-----------|
+| `POST` | `/delivery/run` | Pipeline complet: `employees_url` + `photos[]` → scrape → FaceNet DB → match cosine ≥ 0.60 → email bulk → `{matched, emails_sent, failed, details}` |
 
 ### Utilitare (publice)
 
@@ -597,6 +614,7 @@ Swagger UI: `http://localhost:8000/docs` — butonul **Authorize** permite testa
 |--------|----------|-----------|
 | `GET` | `/health` | Status server, vectori încărcați, device, cache-uri |
 | `GET` | `/latency` | Statistici latență (mean/std/min/max per operație) |
+| `GET` | `/mock-employees` | Pagină HTML mock cu 3 angajați — folosită ca target pentru delivery demo |
 | `GET` | `/image/raw/{basename}` | Servește imaginea RAW din dataset |
 | `GET` | `/image/edited/{basename}` | Servește imaginea editată din dataset |
 
@@ -606,11 +624,11 @@ Swagger UI: `http://localhost:8000/docs` — butonul **Authorize** permite testa
 
 ```
 mvpBachelor/
+├── FLOWS.md                      ← diagrame Mermaid pentru toate activitățile + endpoint-urile
 ├── server/
 │   ├── server_v2.py              ← server principal (toate endpoint-urile)
 │   ├── requirements.txt
 │   ├── auth/
-│   │   ├── __init__.py
 │   │   ├── database.py           ← SQLite engine + get_db()
 │   │   ├── models.py             ← User model (SQLAlchemy)
 │   │   ├── schemas.py            ← Pydantic: UserCreate, Token, UserResponse
@@ -618,9 +636,14 @@ mvpBachelor/
 │   │   ├── dependencies.py       ← get_current_active_user (OAuth2)
 │   │   └── router.py             ← /auth/register, /auth/login, /auth/me
 │   ├── blur_api/
-│   │   ├── __init__.py
 │   │   ├── gemini.py             ← detect_sensitive() via Gemini Vision
+│   │   ├── local_detector.py     ← detect_sensitive() via YOLOv8 nano
 │   │   └── blur.py               ← apply_blur() cu OpenCV GaussianBlur
+│   ├── photo_mailer/             ← modul delivery integrat în server
+│   │   ├── scraper.py            ← scrape_employees() via BeautifulSoup
+│   │   ├── face_db.py            ← build_db() — FaceNet embeddings
+│   │   ├── matcher.py            ← match_photos() — cosine similarity
+│   │   └── mailer.py             ← send_photos() — SMTP bulk
 │   ├── defect_head.pt            ← checkpoint MobileNetV3Small (4.1 MB)
 │   ├── hybrid_vectors.npz        ← vectori 3499 × 517 (7.8 MB)
 │   └── images/
@@ -631,26 +654,27 @@ mvpBachelor/
 │       ├── api/
 │       │   ├── ApiClient.java    ← OkHttp + AuthInterceptor JWT
 │       │   ├── ApiService.java   ← interfață Retrofit (toate endpoint-urile)
-│       │   ├── UserCreate.java
-│       │   ├── UserResponse.java
-│       │   ├── TokenResponse.java
+│       │   ├── UserCreate.java, TokenResponse.java, UserResponse.java
 │       │   ├── MailSendResponse.java
 │       │   └── ...               ← modele PhotoMatch existente
 │       ├── MainActivity.java
 │       ├── ProcessingActivity.java
-│       ├── ResultsActivity.java
 │       ├── BatchActivity.java
 │       ├── ClusterActivity.java
 │       ├── BurstActivity.java
 │       ├── FaceGroupsActivity.java
 │       └── PipelineActivity.java
-└── photo_mailer/
-    ├── face_db.py
+├── photomatch-lite/              ← proiect Android demonstrativ (BaseApiActivity pattern)
+│   └── app/src/main/java/com/photomatch/lite/
+│       ├── base/BaseApiActivity.java     ← pattern Template Method (~50 linii)
+│       ├── api/                          ← ApiClient, ApiService, modele POJOs
+│       └── ui/                           ← LoginActivity, BlurActivity, DeliveryActivity
+└── photo_mailer/                 ← PhotoMailer CLI (tool autonom, fără UI)
     ├── scraper.py
+    ├── face_db.py
     ├── matcher.py
     ├── mailer.py
-    ├── main.py
-    └── requirements.txt
+    └── main.py
 ```
 
 ---
