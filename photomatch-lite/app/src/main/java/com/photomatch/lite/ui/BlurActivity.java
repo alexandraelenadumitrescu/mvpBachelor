@@ -59,7 +59,7 @@ public class BlurActivity extends BaseApiActivity<Uri, ResponseBody> {
             is.close();
             RequestBody body = RequestBody.create(bytes, MediaType.parse("image/jpeg"));
             MultipartBody.Part part = MultipartBody.Part.createFormData("file", "photo.jpg", body);
-            return ApiClient.service().blurSensitive(part);
+            return ApiClient.service().blurSensitive(part, "gemini");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

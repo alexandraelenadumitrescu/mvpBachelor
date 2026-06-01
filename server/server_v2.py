@@ -17,6 +17,8 @@ Install: pip install -r requirements.txt
 import os
 import sys
 import uuid
+from dotenv import load_dotenv
+load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
 import base64
 import threading
 import time
@@ -42,9 +44,10 @@ from fastapi.responses import FileResponse, HTMLResponse, Response
 from blur_api.blur import apply_blur
 from blur_api.gemini import detect_sensitive as _detect_gemini
 from blur_api.local_detector import detect_sensitive as _detect_local
-from photo_mailer.scraper import scrape_employees as _scrape
-from photo_mailer.face_db import build_db          as _build_db
-from photo_mailer.matcher import match_photos       as _match_photos
+from photo_mailer.scraper  import scrape_employees as _scrape
+from photo_mailer.face_db  import build_db          as _build_db
+from photo_mailer.matcher  import match_photos       as _match_photos
+from photo_mailer.cluster  import cluster_faces      as _cluster_faces
 from PIL import Image
 from pydantic import BaseModel
 from scipy.interpolate import LinearNDInterpolator
@@ -76,39 +79,43 @@ print(f"Device: {device}")
 # STARTUP CHECKS
 # ============================================================
 
+_search_ready = True
+
 if not os.path.exists(VECTORS_PATH):
-    print(f"ERROR: hybrid_vectors.npz not found at {VECTORS_PATH}", file=sys.stderr)
-    sys.exit(1)
+    print(f"WARNING: hybrid_vectors.npz not found — /search endpoint disabled", file=sys.stderr)
+    _search_ready = False
 
 if not os.path.exists(MODEL_PATH):
-    print(f"ERROR: defect_head.pt not found at {MODEL_PATH}", file=sys.stderr)
-    print("Place defect_head.pt in the server/ folder and restart.", file=sys.stderr)
-    sys.exit(1)
+    print(f"WARNING: defect_head.pt not found — /search endpoint disabled", file=sys.stderr)
+    _search_ready = False
 
 # ============================================================
 # LOAD MODELS
 # ============================================================
 
-print("Loading CLIP ViT-B-32...")
-clip_model, _, clip_preprocess = open_clip.create_model_and_transforms(
-    "ViT-B-32", pretrained="openai"
-)
-clip_model = clip_model.to(device).eval()
-print("✅ CLIP loaded")
+clip_model = clip_preprocess = backbone = defect_transform = None
 
-print("Loading MobileNetV3Small defect head...")
-backbone = models.mobilenet_v3_small(weights=None)
-in_features = backbone.classifier[0].in_features
-backbone.classifier = nn.Sequential(
-    nn.Linear(in_features, 128),
-    nn.Hardswish(),
-    nn.Dropout(0.2),
-    nn.Linear(128, 5),
-    nn.Sigmoid(),
-)
-backbone.load_state_dict(torch.load(MODEL_PATH, map_location=device))
-backbone = backbone.to(device).eval()
-print("✅ MobileNetV3Small defect head loaded")
+if _search_ready:
+    print("Loading CLIP ViT-B-32...")
+    clip_model, _, clip_preprocess = open_clip.create_model_and_transforms(
+        "ViT-B-32", pretrained="openai"
+    )
+    clip_model = clip_model.to(device).eval()
+    print("✅ CLIP loaded")
+
+    print("Loading MobileNetV3Small defect head...")
+    backbone = models.mobilenet_v3_small(weights=None)
+    in_features = backbone.classifier[0].in_features
+    backbone.classifier = nn.Sequential(
+        nn.Linear(in_features, 128),
+        nn.Hardswish(),
+        nn.Dropout(0.2),
+        nn.Linear(128, 5),
+        nn.Sigmoid(),
+    )
+    backbone.load_state_dict(torch.load(MODEL_PATH, map_location=device))
+    backbone = backbone.to(device).eval()
+    print("✅ MobileNetV3Small defect head loaded")
 
 defect_transform = transforms.Compose([
     transforms.Resize((224, 224)),
@@ -120,33 +127,33 @@ defect_transform = transforms.Compose([
 # LOAD VECTORS + BUILD FAISS INDEX
 # ============================================================
 
-print("Loading hybrid vectors...")
-data          = np.load(VECTORS_PATH, allow_pickle=True)
-hybrid_matrix = data["vectors"].astype("float32")
-image_names   = data["names"].tolist()
-print(f"Loaded {len(image_names)} vectors of dimension {hybrid_matrix.shape[1]}")
+hybrid_matrix = weighted_matrix = weighted_matrix_norm = None
+image_names: list = []
+name_to_idx: dict = {}
+index = None
 
-# Apply same weighting used at index-build time
-clip_part   = hybrid_matrix[:, :512]
-defect_part = hybrid_matrix[:, 512:]
+if _search_ready:
+    print("Loading hybrid vectors...")
+    data          = np.load(VECTORS_PATH, allow_pickle=True)
+    hybrid_matrix = data["vectors"].astype("float32")
+    image_names   = data["names"].tolist()
+    print(f"Loaded {len(image_names)} vectors of dimension {hybrid_matrix.shape[1]}")
 
-clip_norm   = clip_part   / (np.linalg.norm(clip_part,   axis=1, keepdims=True) + 1e-8)
-defect_norm = defect_part / (np.linalg.norm(defect_part, axis=1, keepdims=True) + 1e-8)
+    clip_part   = hybrid_matrix[:, :512]
+    defect_part = hybrid_matrix[:, 512:]
+    clip_norm   = clip_part   / (np.linalg.norm(clip_part,   axis=1, keepdims=True) + 1e-8)
+    defect_norm = defect_part / (np.linalg.norm(defect_part, axis=1, keepdims=True) + 1e-8)
+    weighted_matrix = np.concatenate(
+        [clip_norm * CLIP_WEIGHT, defect_norm * DEFECT_WEIGHT], axis=1
+    ).astype("float32")
 
-weighted_matrix = np.concatenate(
-    [clip_norm * CLIP_WEIGHT, defect_norm * DEFECT_WEIGHT], axis=1
-).astype("float32")
+    final_norms = np.linalg.norm(weighted_matrix, axis=1, keepdims=True)
+    weighted_matrix_norm = weighted_matrix / (final_norms + 1e-8)
+    name_to_idx = {name: i for i, name in enumerate(image_names)}
 
-final_norms = np.linalg.norm(weighted_matrix, axis=1, keepdims=True)
-weighted_matrix_norm = weighted_matrix / (final_norms + 1e-8)
-
-# Retain weighted_matrix (pre-normalized) for CLIP-only semantic guard in style retrieval
-# weighted_matrix[:, :512] == L2-normalized clip vectors (CLIP_WEIGHT=1.0)
-name_to_idx: dict = {name: i for i, name in enumerate(image_names)}
-
-index = faiss.IndexFlatIP(weighted_matrix_norm.shape[1])
-index.add(weighted_matrix_norm)
-print(f"✅ FAISS index ready with {index.ntotal} vectors (dim={weighted_matrix_norm.shape[1]})")
+    index = faiss.IndexFlatIP(weighted_matrix_norm.shape[1])
+    index.add(weighted_matrix_norm)
+    print(f"✅ FAISS index ready with {index.ntotal} vectors (dim={weighted_matrix_norm.shape[1]})")
 
 # ============================================================
 # LUT CACHE (pre-computed in background)
@@ -573,6 +580,18 @@ class DeliveryRunResponse(BaseModel):
     failed:      int
     details:     list[DeliveryDetail]
 
+class FaceClusterFace(BaseModel):
+    photo_name: str
+    face_image: str  # base64 JPEG 100x100
+
+class FaceClusterGroup(BaseModel):
+    cluster_id: int
+    faces:      list[FaceClusterFace]
+
+class FaceClusterResponse(BaseModel):
+    clusters:    list[FaceClusterGroup]
+    total_faces: int
+
 class ClusterRequest(BaseModel):
     vectors:    list[list[float]]
     n_clusters: int | None = None
@@ -638,6 +657,8 @@ def health():
 @app.post("/search", response_model=SearchResponse)
 def search(req: SearchRequest, current_user = Depends(get_current_active_user)):
     """Search by a pre-computed hybrid vector (e.g. from the Android client)."""
+    if not _search_ready:
+        raise HTTPException(status_code=503, detail="Search models not loaded (missing defect_head.pt or hybrid_vectors.npz)")
     expected_dim = weighted_matrix_norm.shape[1]
     if len(req.vector) != expected_dim:
         raise HTTPException(
@@ -678,6 +699,8 @@ def search_and_correct(
     include_images:   bool  = True,
     current_user = Depends(get_current_active_user),
 ):
+    if not _search_ready:
+        raise HTTPException(status_code=503, detail="Search models not loaded")
     """
     Fast path: Android pre-computes CLIP+defect vectors locally and sends the 517-dim
     hybrid vector. Server does only FAISS search + reference image retrieval.
@@ -752,6 +775,8 @@ def apply_lut_endpoint(req: ApplyLutRequest, current_user = Depends(get_current_
 
 @app.post("/process", response_model=ProcessResponse)
 async def process(file: UploadFile = File(...), aesthetic_weight: float = 0.3, current_user = Depends(get_current_active_user)):
+    if not _search_ready:
+        raise HTTPException(status_code=503, detail="Search models not loaded")
     """
     Full pipeline:
     1. Extract CLIP (512) + defect (5) vectors
@@ -794,6 +819,8 @@ async def process(file: UploadFile = File(...), aesthetic_weight: float = 0.3, c
 
 @app.post("/batch/process", response_model=BatchResponse)
 async def batch_process(files: list[UploadFile] = File(...), current_user = Depends(get_current_active_user)):
+    if not _search_ready:
+        raise HTTPException(status_code=503, detail="Search models not loaded")
     """
     Full correction pipeline applied to each uploaded image.
     Identical to /process but accepts up to 100 images in one request.
@@ -890,6 +917,8 @@ async def style_process(
     session_id: str        = Form(...),
     current_user = Depends(get_current_active_user),
 ):
+    if not _search_ready:
+        raise HTTPException(status_code=503, detail="Search models not loaded")
     """
     Full pipeline with style-constrained retrieval:
     1. Build query vector from uploaded image
@@ -941,6 +970,8 @@ async def style_process(
 
 @app.post("/style/search", response_model=StyleSearchResponse)
 def style_search(req: StyleSearchRequest, current_user = Depends(get_current_active_user)):
+    if not _search_ready:
+        raise HTTPException(status_code=503, detail="Search models not loaded")
     """
     Style-constrained FAISS retrieval using a pre-computed 517-dim hybrid vector.
     Returns only retrieval metadata — client calls /apply_lut for the actual correction.
@@ -1080,8 +1111,10 @@ async def mail_send(
 ):
     smtp_host = os.environ.get("SMTP_HOST", "smtp.gmail.com")
     smtp_port = int(os.environ.get("SMTP_PORT", 587))
-    smtp_user = os.environ["SMTP_USER"]
-    smtp_pass = os.environ["SMTP_PASSWORD"]
+    smtp_user = os.environ.get("SMTP_USER")
+    smtp_pass = os.environ.get("SMTP_PASSWORD")
+    if not smtp_user or not smtp_pass:
+        raise HTTPException(500, "SMTP_USER and SMTP_PASSWORD environment variables must be set")
 
     msg = MIMEMultipart()
     msg["From"]    = smtp_user
@@ -1142,7 +1175,156 @@ def mock_employees():
 
 
 # ============================================================
-# DELIVERY
+# FACE CLUSTERING (diagnostic)
+# ============================================================
+
+@app.post("/cluster/faces", response_model=FaceClusterResponse)
+async def face_cluster(
+    photos: list[UploadFile] = File(...),
+    current_user = Depends(get_current_active_user),
+):
+    """Detect and cluster all faces from uploaded photos. Returns cropped face thumbnails grouped by identity."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        for photo in photos:
+            data  = await photo.read()
+            fname = photo.filename or f"{uuid.uuid4()}.jpg"
+            with open(os.path.join(tmp_dir, fname), "wb") as fh:
+                fh.write(data)
+
+        clusters = _cluster_faces(tmp_dir)
+
+    total = sum(len(c["faces"]) for c in clusters)
+    print(f"[cluster/faces] {total} faces in {len(clusters)} clusters")
+    return FaceClusterResponse(
+        clusters=[FaceClusterGroup(
+            cluster_id=c["cluster_id"],
+            faces=[FaceClusterFace(**f) for f in c["faces"]],
+        ) for c in clusters],
+        total_faces=total,
+    )
+
+
+# ============================================================
+# DELIVERY v2 — embedding-based (memory-efficient)
+# ============================================================
+
+class PhotoEmbeddingsItem(BaseModel):
+    photo_index: int
+    embeddings:  list[list[float]]
+
+class MatchEmbeddingsRequest(BaseModel):
+    employees_url: str
+    photos:        list[PhotoEmbeddingsItem]
+
+class PhotoMatchItem(BaseModel):
+    photo_index: int
+    email:       str
+
+class MatchEmbeddingsResponse(BaseModel):
+    matches:         list[PhotoMatchItem]
+    employees_count: int
+
+class SendMatchedDetail(BaseModel):
+    email:        str
+    photos_count: int
+
+class SendMatchedResponse(BaseModel):
+    emails_sent: int
+    failed:      int
+    details:     list[SendMatchedDetail]
+
+
+_MATCH_THRESHOLD = 0.55
+
+
+@app.post("/delivery/match-embeddings", response_model=MatchEmbeddingsResponse)
+async def delivery_match_embeddings(
+    request: MatchEmbeddingsRequest,
+    current_user = Depends(get_current_active_user),
+):
+    """Phase 1: receive on-device embeddings, scrape employee DB, return matches."""
+    try:
+        employees = _scrape(request.employees_url)
+    except Exception as e:
+        raise HTTPException(500, f"Scrape failed: {e}")
+    if not employees:
+        raise HTTPException(400, f"No employees found at {request.employees_url}")
+
+    db = _build_db(employees)
+    if not db:
+        raise HTTPException(500, "Face DB build failed")
+
+    print(f"[match-emb] db={len(db)} employees, photos={len(request.photos)}")
+
+    matches: list[PhotoMatchItem] = []
+    for photo_data in request.photos:
+        matched_in_photo: set[str] = set()
+        for raw_emb in photo_data.embeddings:
+            emb = np.array(raw_emb, dtype=np.float32)
+            norm = float(np.linalg.norm(emb))
+            if norm > 0:
+                emb = emb / norm
+            best_email, best_sim = "", -1.0
+            for email, db_emb in db.items():
+                sim = float(np.dot(emb, db_emb))
+                if sim > best_sim:
+                    best_sim, best_email = sim, email
+            print(f"  photo={photo_data.photo_index} best={best_email} sim={best_sim:.3f}")
+            if best_sim >= _MATCH_THRESHOLD and best_email not in matched_in_photo:
+                matches.append(PhotoMatchItem(
+                    photo_index=photo_data.photo_index,
+                    email=best_email,
+                ))
+                matched_in_photo.add(best_email)
+
+    print(f"[match-emb] {len(matches)} matches found")
+    return MatchEmbeddingsResponse(matches=matches, employees_count=len(db))
+
+
+@app.post("/delivery/send-matched", response_model=SendMatchedResponse)
+async def delivery_send_matched(
+    to_email: str              = Form(...),
+    photos:   list[UploadFile] = File(...),
+    current_user = Depends(get_current_active_user),
+):
+    """Phase 2 (per-person): receive photos for one person, send one email."""
+    smtp_host = os.environ.get("SMTP_HOST", "smtp.gmail.com")
+    smtp_port = int(os.environ.get("SMTP_PORT", 587))
+    smtp_user = os.environ.get("SMTP_USER")
+    smtp_pass = os.environ.get("SMTP_PASSWORD")
+    if not smtp_user or not smtp_pass:
+        raise HTTPException(500, "SMTP_USER and SMTP_PASSWORD environment variables must be set")
+
+    try:
+        msg = MIMEMultipart()
+        msg["From"]    = smtp_user
+        msg["To"]      = "alexandradumitrescu04@gmail.com"
+        msg["Subject"] = f"Event photos for {to_email}"
+        msg.attach(MIMEText(
+            f"Hi,\n\nPhotos identified for {to_email}.\n\nBest regards", "plain"))
+        for photo in photos:
+            data = await photo.read()
+            img_part = MIMEImage(data)
+            img_part.add_header("Content-Disposition", "attachment",
+                                filename=photo.filename or "photo.jpg")
+            msg.attach(img_part)
+
+        with smtplib.SMTP(smtp_host, smtp_port, timeout=15) as server:
+            server.ehlo(); server.starttls(); server.login(smtp_user, smtp_pass)
+            server.sendmail(smtp_user, "alexandradumitrescu04@gmail.com", msg.as_string())
+
+        print(f"[send-matched] sent for {to_email} ({len(photos)} photos)")
+        return SendMatchedResponse(
+            emails_sent=1, failed=0,
+            details=[SendMatchedDetail(email=to_email, photos_count=len(photos))],
+        )
+    except Exception as e:
+        print(f"[send-matched] failed for {to_email}: {e}")
+        return SendMatchedResponse(emails_sent=0, failed=1, details=[])
+
+
+# ============================================================
+# DELIVERY (legacy — full server-side pipeline)
 # ============================================================
 
 @app.post("/delivery/run", response_model=DeliveryRunResponse)
@@ -1160,18 +1342,46 @@ async def delivery_run(
     Returns matched count, emails sent, per-person details.
     Requires: SMTP_USER, SMTP_PASSWORD env vars.
     """
+    import traceback as _tb
     smtp_host = os.environ.get("SMTP_HOST", "smtp.gmail.com")
     smtp_port = int(os.environ.get("SMTP_PORT", 587))
-    smtp_user = os.environ["SMTP_USER"]
-    smtp_pass = os.environ["SMTP_PASSWORD"]
+    smtp_user = os.environ.get("SMTP_USER")
+    smtp_pass = os.environ.get("SMTP_PASSWORD")
+    print(f"[delivery/run] SMTP_USER={smtp_user!r}")
+    if not smtp_user or not smtp_pass:
+        raise HTTPException(500, "SMTP_USER and SMTP_PASSWORD environment variables must be set")
 
-    employees = _scrape(employees_url)
+    try:
+        employees = _scrape(employees_url)
+    except Exception as e:
+        print(f"[delivery/run] _scrape failed: {e}\n{_tb.format_exc()}")
+        raise HTTPException(500, f"Scrape failed: {e}")
+    print(f"[delivery/run] scraped {len(employees)} employees")
     if not employees:
         raise HTTPException(400, f"No employees found at {employees_url}")
 
-    db = _build_db(employees)
+    try:
+        db = _build_db(employees)
+    except Exception as e:
+        print(f"[delivery/run] _build_db failed: {e}\n{_tb.format_exc()}")
+        raise HTTPException(500, f"Build DB failed: {e}")
+    print(f"[delivery/run] db built, {len(db)} entries")
     if not db:
         raise HTTPException(500, "Face DB build failed — no embeddings extracted")
+
+    matched     = 0
+    emails_sent = 0
+    failed      = 0
+    details     = []
+
+    try:
+        smtp_conn = smtplib.SMTP(smtp_host, smtp_port, timeout=10)
+        smtp_conn.ehlo()
+        smtp_conn.starttls()
+        smtp_conn.login(smtp_user, smtp_pass)
+    except Exception as smtp_err:
+        print(f"  [/delivery/run] SMTP connection/login failed: {smtp_err}")
+        smtp_conn = None
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         for photo in photos:
@@ -1181,39 +1391,33 @@ async def delivery_run(
                 fh.write(data)
 
         matches = _match_photos(tmp_dir, db)
+        matched = sum(len(paths) for paths in matches.values())
 
-    matched     = sum(len(paths) for paths in matches.values())
-    emails_sent = 0
-    failed      = 0
-    details     = []
-
-    with smtplib.SMTP(smtp_host, smtp_port) as server:
-        server.ehlo()
-        server.starttls()
-        server.login(smtp_user, smtp_pass)
-        for to_email, photo_paths in matches.items():
-            try:
-                msg = MIMEMultipart()
-                msg["From"]    = smtp_user
-                msg["To"]      = to_email
-                msg["Subject"] = "Your event photos"
-                msg.attach(MIMEText(
-                    f"Hi,\n\nWe found {len(photo_paths)} photo(s) of you from the event. "
-                    "See the attachments!\n\nBest regards",
-                    "plain",
-                ))
-                for path in photo_paths:
-                    with open(path, "rb") as fh:
-                        img_part = MIMEImage(fh.read())
-                    img_part.add_header("Content-Disposition", "attachment",
-                                        filename=os.path.basename(path))
-                    msg.attach(img_part)
-                server.sendmail(smtp_user, to_email, msg.as_string())
-                emails_sent += 1
-                details.append(DeliveryDetail(email=to_email, photos_count=len(photo_paths)))
-            except Exception as exc:
-                print(f"  [/delivery/run] send to {to_email} failed: {exc}")
-                failed += 1
+        if smtp_conn:
+            with smtp_conn:
+                for to_email, photo_paths in matches.items():
+                    try:
+                        msg = MIMEMultipart()
+                        msg["From"]    = smtp_user
+                        msg["To"]      = "alexandradumitrescu04@gmail.com"
+                        msg["Subject"] = f"Event photos for {to_email}"
+                        msg.attach(MIMEText(
+                            f"Hi,\n\nWe found {len(photo_paths)} photo(s) of you from the event. "
+                            "See the attachments!\n\nBest regards",
+                            "plain",
+                        ))
+                        for path in photo_paths:
+                            with open(path, "rb") as fh:
+                                img_part = MIMEImage(fh.read())
+                            img_part.add_header("Content-Disposition", "attachment",
+                                                filename=os.path.basename(path))
+                            msg.attach(img_part)
+                        smtp_conn.sendmail(smtp_user, "alexandradumitrescu04@gmail.com", msg.as_string())
+                        emails_sent += 1
+                        details.append(DeliveryDetail(email=to_email, photos_count=len(photo_paths)))
+                    except Exception as exc:
+                        print(f"  [/delivery/run] send to {to_email} failed: {exc}")
+                        failed += 1
 
     return DeliveryRunResponse(
         matched=matched, emails_sent=emails_sent, failed=failed, details=details

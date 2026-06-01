@@ -22,6 +22,8 @@ public class LoginActivity extends BaseApiActivity<UserCreate, TokenResponse> {
 
     @Override
     protected void onBindViews() {
+        binding.etEmail.setText("a@a.com");
+        binding.etPassword.setText("string");
         binding.btnLogin.setOnClickListener(v -> submit());
     }
 
@@ -41,7 +43,6 @@ public class LoginActivity extends BaseApiActivity<UserCreate, TokenResponse> {
     @Override
     protected void onSuccess(TokenResponse response) {
         ApiClient.saveToken(response.access_token);
-        startActivity(new Intent(this, MainActivity.class));
         finish();
     }
 }

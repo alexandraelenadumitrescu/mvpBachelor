@@ -8,10 +8,11 @@
         android:name=".PhotoMatchApp"
         android:allowBackup="true"
         android:label="PhotoMatch Lite"
-        android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+        android:theme="@style/Theme.PhotoMatch"
+        android:usesCleartextTraffic="true">
 
         <activity
-            android:name=".ui.LoginActivity"
+            android:name=".ui.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -19,9 +20,10 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".ui.MainActivity"/>
+        <activity android:name=".ui.LoginActivity"/>
         <activity android:name=".ui.BlurActivity"/>
         <activity android:name=".ui.DeliveryActivity"/>
+        <activity android:name=".ui.ClusterActivity"/>
 
     </application>
 
