@@ -19,7 +19,7 @@ public class ApiClient {
     public static final String PREFS_NAME    = "photomatch_prefs";
     public static final String KEY_SERVER_IP = "server_ip";
     public static final String KEY_TOKEN     = "auth_token";
-    public static final String DEFAULT_IP    = "192.168.1.132";
+    public static final String DEFAULT_IP    = "10.33.163.180";
 
     private static Context   appContext;
     private static ApiClient instance;
