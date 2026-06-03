@@ -33,20 +33,23 @@ def match_photos(
         name = os.path.basename(photo_path)
         t0 = time.perf_counter()
         try:
-            from PIL import Image as _PIL
-            with _PIL.open(photo_path) as _img:
-                w, h = _img.size
-            if w < 64 or h < 64:
-                print(f"  [matcher] ✗ {name} skipped: image too small ({w}×{h})")
-                return local
             faces = DeepFace.represent(
                 img_path=photo_path,
                 model_name="Facenet",
+                detector_backend="retinaface",
                 enforce_detection=False,
             )
-        except Exception as exc:
-            print(f"  [matcher] ✗ {name} skipped: {exc}")
-            return local
+        except Exception:
+            try:
+                faces = DeepFace.represent(
+                    img_path=photo_path,
+                    model_name="Facenet",
+                    detector_backend="ssd",
+                    enforce_detection=False,
+                )
+            except Exception as exc:
+                print(f"  [matcher] ✗ {name} skipped: {exc}")
+                return local
         t_detect = time.perf_counter()
         print(f"  [matcher] {name}: {len(faces)} face(s) detected in {t_detect - t0:.2f}s")
         for face in faces:

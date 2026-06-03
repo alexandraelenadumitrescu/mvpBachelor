@@ -171,6 +171,10 @@ _employees_cache:  dict[str, tuple] = {}  # url -> (employees_list, name_by_emai
 _face_db_tflite:   dict[str, dict]  = {}  # url -> {email: tflite_embedding}
 _face_db_facenet:  dict[str, dict]  = {}  # url -> {email: facenet_embedding}
 
+# Bump this version string whenever the detector backend or model changes —
+# forces clients to call /delivery/invalidate-cache after server restart
+_FACE_DB_VERSION = "retinaface-facenet-v1"
+
 lut_cache:     dict = {}  # basename -> np.ndarray shape (LUT_SIZE, LUT_SIZE, LUT_SIZE, 3)
 style_profiles: dict = {}  # session_id -> np.ndarray shape (N, 517) weighted-normalized
 

@@ -30,6 +30,7 @@ def build_db_facenet(employees: list[dict]) -> dict[str, list[float]]:
                 result = DeepFace.represent(
                     img_path=tmp_path,
                     model_name="Facenet",
+                    detector_backend="retinaface",
                     enforce_detection=False,
                 )
                 emb = result[0]["embedding"]
