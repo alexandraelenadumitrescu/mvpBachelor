@@ -4,17 +4,24 @@ import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import numpy as np
+from PIL import Image
 from deepface import DeepFace
+from photo_mailer import tflite_embedder
 
 SUPPORTED_EXTENSIONS = {".jpg", ".jpeg", ".png"}
-THRESHOLD = 0.55
+THRESHOLD = 0.60   # cosine similarity on L2-normalized TFLite embeddings
 
 
 def match_photos(
     photos_dir: str,
-    db: dict[str, list[float]],
+    db: dict[str, np.ndarray],
     threshold: float = THRESHOLD,
 ) -> dict[str, list[str]]:
+    """
+    Detect faces with RetinaFace, embed with FaceNet TFLite (same model as Android),
+    match against employee DB. Processes photos in parallel.
+    Returns {email: [photo_paths]}.
+    """
     results: dict[str, list[str]] = {}
     lock = threading.Lock()
 
@@ -25,7 +32,7 @@ def match_photos(
     ]
 
     if not photo_files:
-        print(f"No images found in {photos_dir}")
+        print(f"[matcher] no images found in {photos_dir}")
         return results
 
     def process_photo(photo_path: str) -> dict[str, list[str]]:
@@ -33,27 +40,29 @@ def match_photos(
         name = os.path.basename(photo_path)
         t0 = time.perf_counter()
         try:
-            faces = DeepFace.represent(
+            faces = DeepFace.extract_faces(
                 img_path=photo_path,
-                model_name="Facenet",
-                detector_backend="retinaface",
                 enforce_detection=False,
+                detector_backend="retinaface",
             )
         except Exception:
             try:
-                faces = DeepFace.represent(
+                faces = DeepFace.extract_faces(
                     img_path=photo_path,
-                    model_name="Facenet",
-                    detector_backend="ssd",
                     enforce_detection=False,
+                    detector_backend="ssd",
                 )
             except Exception as exc:
                 print(f"  [matcher] ✗ {name} skipped: {exc}")
                 return local
+
         t_detect = time.perf_counter()
-        print(f"  [matcher] {name}: {len(faces)} face(s) detected in {t_detect - t0:.2f}s")
+        print(f"  [matcher] {name}: {len(faces)} face(s) in {t_detect - t0:.2f}s")
+
         for face in faces:
-            best_email, best_sim = _best_match(face["embedding"], db)
+            face_img = Image.fromarray((face["face"] * 255).astype(np.uint8))
+            embedding = tflite_embedder.embed(face_img)
+            best_email, best_sim = _best_match(embedding, db)
             if best_sim >= threshold:
                 local.setdefault(best_email, [])
                 if photo_path not in local[best_email]:
@@ -73,27 +82,22 @@ def match_photos(
                     for p in paths:
                         if p not in results[email]:
                             results[email].append(p)
+
     t_total = time.perf_counter() - t_start
-    print(f"  [matcher] total: {len(photo_files)} photos in {t_total:.1f}s "
+    print(f"  [matcher] done: {len(photo_files)} photos in {t_total:.1f}s "
           f"→ {len(results)} person(s) matched")
     return results
 
 
 def _best_match(
-    embedding: list[float],
-    db: dict[str, list[float]],
+    embedding: np.ndarray,
+    db: dict[str, np.ndarray],
 ) -> tuple[str, float]:
     best_email = ""
     best_sim   = -1.0
     for email, db_emb in db.items():
-        sim = _cosine_sim(embedding, db_emb)
+        sim = float(np.dot(embedding, db_emb))  # both L2-normalized → cosine sim
         if sim > best_sim:
             best_sim   = sim
             best_email = email
     return best_email, best_sim
-
-
-def _cosine_sim(a: list[float], b: list[float]) -> float:
-    a, b = np.array(a), np.array(b)
-    denom = np.linalg.norm(a) * np.linalg.norm(b)
-    return float(np.dot(a, b) / denom) if denom > 0 else 0.0

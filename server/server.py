@@ -47,7 +47,6 @@ from blur_api.gemini import detect_sensitive as _detect_gemini
 from blur_api.local_detector import detect_sensitive as _detect_local
 from photo_mailer.scraper  import scrape_employees as _scrape
 from photo_mailer.face_db  import build_db          as _build_db
-from photo_mailer.face_db  import build_db_facenet  as _build_db_facenet
 from photo_mailer.matcher  import match_photos       as _match_photos
 from photo_mailer.cluster  import cluster_faces      as _cluster_faces
 from PIL import Image
@@ -167,13 +166,8 @@ _bg_pause = threading.Event()  # set = pause, clear = run
 
 # Per-URL caches — avoids re-scraping + re-embedding on repeated delivery calls
 # Two separate caches because TFLite and Facenet embeddings are in different spaces
-_employees_cache:  dict[str, tuple] = {}  # url -> (employees_list, name_by_email)
-_face_db_tflite:   dict[str, dict]  = {}  # url -> {email: tflite_embedding}
-_face_db_facenet:  dict[str, dict]  = {}  # url -> {email: facenet_embedding}
-
-# Bump this version string whenever the detector backend or model changes —
-# forces clients to call /delivery/invalidate-cache after server restart
-_FACE_DB_VERSION = "retinaface-facenet-v1"
+_employees_cache: dict[str, tuple] = {}  # url -> (employees_list, name_by_email)
+_face_db_tflite:  dict[str, dict]  = {}  # url -> {email: tflite_embedding}
 
 lut_cache:     dict = {}  # basename -> np.ndarray shape (LUT_SIZE, LUT_SIZE, LUT_SIZE, 3)
 style_profiles: dict = {}  # session_id -> np.ndarray shape (N, 517) weighted-normalized
@@ -277,21 +271,9 @@ print("Aesthetic pre-computation queued (starts after server fully loaded)")
 
 
 _deepface_ready = threading.Event()
+_deepface_ready.set()  # TFLite pipeline — no warmup needed
 
-def _warmup_deepface():
-    try:
-        from deepface import DeepFace as _DF
-        import numpy as _np
-        print("Warming up DeepFace Facenet...")
-        dummy = _np.zeros((160, 160, 3), dtype=_np.uint8)
-        _DF.represent(dummy, model_name="Facenet", enforce_detection=False)
-        print("✅ DeepFace Facenet warmed up")
-    except Exception as e:
-        print(f"  DeepFace warmup warning: {e}")
-    finally:
-        _deepface_ready.set()
-
-_warmup_thread    = threading.Thread(target=_warmup_deepface,             daemon=True)
+_warmup_thread = threading.Thread(target=lambda: None, daemon=True)  # no-op
 
 
 def _auto_k(X: np.ndarray, max_k: int = 8) -> int:
@@ -1291,7 +1273,6 @@ def delivery_invalidate_cache(current_user = Depends(get_current_active_user)):
     n = len(_employees_cache)
     _employees_cache.clear()
     _face_db_tflite.clear()
-    _face_db_facenet.clear()
     return {"cleared": n, "message": f"Invalidated cache for {n} URL(s)"}
 
 
@@ -1530,17 +1511,17 @@ async def _delivery_run_impl(employees_url, photos, current_user):
 
     # ── STEP 2: Build face DB ──────────────────────────────────
     T["db_start"] = time.perf_counter()
-    if employees_url not in _face_db_facenet:
+    if employees_url not in _face_db_tflite:
         try:
-            db = _build_db_facenet(employees)
+            db = _build_db(employees)
         except Exception as e:
-            print(f"[delivery/run] _build_db_facenet failed: {e}\n{_tb.format_exc()}")
+            print(f"[delivery/run] _build_db failed: {e}\n{_tb.format_exc()}")
             raise HTTPException(500, f"Build DB failed: {e}")
-        _face_db_facenet[employees_url] = db
+        _face_db_tflite[employees_url] = db
         T["db_cached"] = False
     else:
         T["db_cached"] = True
-    db = _face_db_facenet[employees_url]
+    db = _face_db_tflite[employees_url]
     T["db_end"] = time.perf_counter()
     print(f"[timing] face DB: {T['db_end']-T['db_start']:.2f}s "
           f"({'cache' if T['db_cached'] else 'built'}), {len(db)} entries")
