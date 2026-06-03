@@ -1468,26 +1468,37 @@ async def delivery_run(
 
 async def _delivery_run_impl(employees_url, photos, current_user):
     import traceback as _tb
+    T = {}  # timing dict
+    T["start"] = time.perf_counter()
+
     smtp_host = os.environ.get("SMTP_HOST", "smtp.gmail.com")
     smtp_port = int(os.environ.get("SMTP_PORT", 587))
     smtp_user = os.environ.get("SMTP_USER")
     smtp_pass = os.environ.get("SMTP_PASSWORD")
-    print(f"[delivery/run] SMTP_USER={smtp_user!r}")
     if not smtp_user or not smtp_pass:
         raise HTTPException(500, "SMTP_USER and SMTP_PASSWORD environment variables must be set")
 
+    # ── STEP 1: Scrape employees ───────────────────────────────
+    T["scrape_start"] = time.perf_counter()
     if employees_url not in _employees_cache:
         try:
             employees = _scrape(employees_url)
         except Exception as e:
             print(f"[delivery/run] _scrape failed: {e}\n{_tb.format_exc()}")
             raise HTTPException(500, f"Scrape failed: {e}")
-        print(f"[delivery/run] scraped {len(employees)} employees")
         if not employees:
             raise HTTPException(400, f"No employees found at {employees_url}")
         _employees_cache[employees_url] = (employees, {e["email"]: e.get("name", "") for e in employees})
+        T["scrape_cached"] = False
+    else:
+        T["scrape_cached"] = True
     employees, _ = _employees_cache[employees_url]
+    T["scrape_end"] = time.perf_counter()
+    print(f"[timing] scrape: {T['scrape_end']-T['scrape_start']:.2f}s "
+          f"({'cache' if T['scrape_cached'] else 'live'}), {len(employees)} employees")
 
+    # ── STEP 2: Build face DB ──────────────────────────────────
+    T["db_start"] = time.perf_counter()
     if employees_url not in _face_db_facenet:
         try:
             db = _build_db_facenet(employees)
@@ -1495,11 +1506,13 @@ async def _delivery_run_impl(employees_url, photos, current_user):
             print(f"[delivery/run] _build_db_facenet failed: {e}\n{_tb.format_exc()}")
             raise HTTPException(500, f"Build DB failed: {e}")
         _face_db_facenet[employees_url] = db
-        print(f"[delivery/run] face DB built and cached ({len(db)} entries)")
+        T["db_cached"] = False
     else:
-        print(f"[delivery/run] face DB from cache ({len(_face_db_facenet[employees_url])} entries)")
+        T["db_cached"] = True
     db = _face_db_facenet[employees_url]
-    print(f"[delivery/run] db built, {len(db)} entries")
+    T["db_end"] = time.perf_counter()
+    print(f"[timing] face DB: {T['db_end']-T['db_start']:.2f}s "
+          f"({'cache' if T['db_cached'] else 'built'}), {len(db)} entries")
     if not db:
         raise HTTPException(500, "Face DB build failed — no embeddings extracted")
 
@@ -1509,6 +1522,8 @@ async def _delivery_run_impl(employees_url, photos, current_user):
     details     = []
 
     with tempfile.TemporaryDirectory() as tmp_dir:
+        # ── STEP 3: Save + resize uploaded photos ─────────────
+        T["upload_start"] = time.perf_counter()
         for photo in photos:
             data  = await photo.read()
             fname = f"{uuid.uuid4()}.jpg"
@@ -1518,9 +1533,17 @@ async def _delivery_run_impl(employees_url, photos, current_user):
             if scale < 1.0:
                 pil = pil.resize((int(w * scale), int(h * scale)), Image.BILINEAR)
             pil.save(os.path.join(tmp_dir, fname), "JPEG", quality=92)
+        T["upload_end"] = time.perf_counter()
+        n_photos = len(list(os.listdir(tmp_dir)))
+        print(f"[timing] upload+resize: {T['upload_end']-T['upload_start']:.2f}s, {n_photos} photos")
 
+        # ── STEP 4: Face matching ──────────────────────────────
+        T["match_start"] = time.perf_counter()
         matches = _match_photos(tmp_dir, db)
         matched = sum(len(paths) for paths in matches.values())
+        T["match_end"] = time.perf_counter()
+        print(f"[timing] face matching: {T['match_end']-T['match_start']:.2f}s "
+              f"→ {len(matches)} person(s), {matched} photo match(es)")
 
         _, name_by_email = _employees_cache[employees_url]
         demo_recipient  = "alexandradumitrescu04@gmail.com"
@@ -1549,6 +1572,8 @@ async def _delivery_run_impl(employees_url, photos, current_user):
                 conn.sendmail(smtp_user, demo_recipient, msg.as_string())
             return to_email, len(photo_paths)
 
+        # ── STEP 5: Send emails in parallel ───────────────────
+        T["smtp_start"] = time.perf_counter()
         from concurrent.futures import ThreadPoolExecutor as _TPE
         with _TPE(max_workers=5) as pool:
             futures = {pool.submit(_send_one, item): item for item in matches.items()}
@@ -1557,9 +1582,24 @@ async def _delivery_run_impl(employees_url, photos, current_user):
                     to_email, count = future.result()
                     emails_sent += 1
                     details.append(DeliveryDetail(email=to_email, photos_count=count))
+                    print(f"  [timing] email sent → {to_email} ({count} photos)")
                 except Exception as exc:
                     print(f"  [/delivery/run] send failed: {exc}")
                     failed += 1
+        T["smtp_end"] = time.perf_counter()
+        print(f"[timing] smtp: {T['smtp_end']-T['smtp_start']:.2f}s "
+              f"({emails_sent} sent, {failed} failed)")
+
+    T["total"] = time.perf_counter() - T["start"]
+    print(f"\n{'='*50}")
+    print(f"[timing] DELIVERY SUMMARY")
+    print(f"  scrape:   {T['scrape_end']-T['scrape_start']:.2f}s")
+    print(f"  face DB:  {T['db_end']-T['db_start']:.2f}s")
+    print(f"  upload:   {T['upload_end']-T['upload_start']:.2f}s")
+    print(f"  matching: {T['match_end']-T['match_start']:.2f}s")
+    print(f"  smtp:     {T['smtp_end']-T['smtp_start']:.2f}s")
+    print(f"  TOTAL:    {T['total']:.2f}s")
+    print(f"{'='*50}\n")
 
     return DeliveryRunResponse(
         matched=matched, emails_sent=emails_sent, failed=failed, details=details
