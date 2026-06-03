@@ -33,6 +33,12 @@ def match_photos(
         name = os.path.basename(photo_path)
         t0 = time.perf_counter()
         try:
+            from PIL import Image as _PIL
+            with _PIL.open(photo_path) as _img:
+                w, h = _img.size
+            if w < 64 or h < 64:
+                print(f"  [matcher] ✗ {name} skipped: image too small ({w}×{h})")
+                return local
             faces = DeepFace.represent(
                 img_path=photo_path,
                 model_name="Facenet",

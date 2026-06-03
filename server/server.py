@@ -14,6 +14,7 @@ Expected folder layout (all relative to this file):
 Install: pip install -r requirements.txt
 """
 
+import asyncio
 import os
 import sys
 import uuid
@@ -240,8 +241,8 @@ def _precompute_luts():
         print(f"✅ LUT cache saved to disk ({len(lut_cache)} entries)")
 
 
-threading.Thread(target=_precompute_luts, daemon=True).start()
-print("LUT pre-computation started in background (server ready)")
+_lut_thread       = threading.Thread(target=_precompute_luts,             daemon=True)
+print("LUT pre-computation queued (starts after server fully loaded)")
 
 aesthetic_cache: dict = {}  # basename -> float score 0.0-1.0
 
@@ -267,8 +268,8 @@ def _precompute_aesthetic_scores():
     print(f"✅ Aesthetic pre-computation done: {computed} scores cached")
 
 
-threading.Thread(target=_precompute_aesthetic_scores, daemon=True).start()
-print("Aesthetic pre-computation started in background")
+_aesthetic_thread = threading.Thread(target=_precompute_aesthetic_scores, daemon=True)
+print("Aesthetic pre-computation queued (starts after server fully loaded)")
 
 
 _deepface_ready = threading.Event()
@@ -286,7 +287,7 @@ def _warmup_deepface():
     finally:
         _deepface_ready.set()
 
-threading.Thread(target=_warmup_deepface, daemon=True).start()
+_warmup_thread    = threading.Thread(target=_warmup_deepface,             daemon=True)
 
 
 def _auto_k(X: np.ndarray, max_k: int = 8) -> int:
@@ -311,6 +312,13 @@ def _auto_k(X: np.ndarray, max_k: int = 8) -> int:
 # ============================================================
 
 app = FastAPI(title="PhotoMatch Server")
+
+@app.on_event("startup")
+def _start_background_threads():
+    """Start background threads after the module is fully loaded — avoids NameError."""
+    _lut_thread.start()
+    _aesthetic_thread.start()
+    _warmup_thread.start()
 
 from auth.router import router as auth_router
 from auth.dependencies import get_current_active_user
@@ -1541,17 +1549,22 @@ async def _delivery_run_impl(employees_url, photos, current_user):
     details     = []
 
     with tempfile.TemporaryDirectory() as tmp_dir:
-        # ── STEP 3: Save + resize uploaded photos ─────────────
+        # ── STEP 3: Read photos async, resize in thread pool ──
         T["upload_start"] = time.perf_counter()
-        for photo in photos:
-            data  = await photo.read()
-            fname = f"{uuid.uuid4()}.jpg"
-            pil   = Image.open(BytesIO(data)).convert("RGB")
-            w, h  = pil.size
-            scale = min(1920 / max(w, h), 1.0)
-            if scale < 1.0:
-                pil = pil.resize((int(w * scale), int(h * scale)), Image.BILINEAR)
-            pil.save(os.path.join(tmp_dir, fname), "JPEG", quality=92)
+        raw_photos = [(await photo.read()) for photo in photos]
+
+        def _save_photos():
+            for data in raw_photos:
+                fname = f"{uuid.uuid4()}.jpg"
+                pil   = Image.open(BytesIO(data)).convert("RGB")
+                w, h  = pil.size
+                scale = min(1920 / max(w, h), 1.0)
+                if scale < 1.0:
+                    pil = pil.resize((int(w * scale), int(h * scale)), Image.BILINEAR)
+                pil.save(os.path.join(tmp_dir, fname), "JPEG", quality=92)
+
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(None, _save_photos)
         T["upload_end"] = time.perf_counter()
         n_photos = len(list(os.listdir(tmp_dir)))
         print(f"[timing] upload+resize: {T['upload_end']-T['upload_start']:.2f}s, {n_photos} photos")
