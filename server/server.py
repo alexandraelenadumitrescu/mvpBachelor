@@ -1624,6 +1624,189 @@ async def _delivery_run_impl(employees_url, photos, current_user):
 
 
 # ============================================================
+# DELIVERY v2 — cluster-based matching
+# ============================================================
+
+from photo_mailer.face_clusterer import (
+    extract_all_faces, cluster_faces as _cluster_faces_v2,
+    match_clusters_to_employees, CLUSTER_THRESHOLD,
+)
+
+class DeliveryRunV2Response(BaseModel):
+    clusters_found: int
+    matched:        int
+    emails_sent:    int
+    failed:         int
+    details:        list[DeliveryDetail]
+
+
+@app.post("/delivery/run/v2", response_model=DeliveryRunV2Response)
+async def delivery_run_v2(
+    employees_url: str              = Form(...),
+    photos:        list[UploadFile] = File(...),
+    current_user = Depends(get_current_active_user),
+):
+    """
+    Delivery v2 — cluster-based face matching (mirrors FaceGroupsActivity pipeline):
+    1. Detect + embed all faces across all uploaded photos
+    2. Cluster faces with greedy cosine similarity (threshold 0.75, same as Android)
+    3. Match each cluster centroid against employee face DB
+    4. Send matched photos to employees
+    More robust than per-face matching: multiple samples per person reinforce the match.
+    """
+    import traceback as _tb
+
+    if not _deepface_ready.wait(timeout=60):
+        raise HTTPException(503, "Model not ready — retry in a few seconds")
+
+    _bg_pause.set()
+    try:
+        return await _delivery_run_v2_impl(employees_url, photos, current_user)
+    finally:
+        _bg_pause.clear()
+
+
+async def _delivery_run_v2_impl(employees_url, photos, current_user):
+    import traceback as _tb
+    T = {}
+    T["start"] = time.perf_counter()
+
+    smtp_host = os.environ.get("SMTP_HOST", "smtp.gmail.com")
+    smtp_port = int(os.environ.get("SMTP_PORT", 587))
+    smtp_user = os.environ.get("SMTP_USER")
+    smtp_pass = os.environ.get("SMTP_PASSWORD")
+    if not smtp_user or not smtp_pass:
+        raise HTTPException(500, "SMTP_USER and SMTP_PASSWORD must be set")
+
+    # ── STEP 1: Employee face DB (cached) ─────────────────────
+    T["db_start"] = time.perf_counter()
+    if employees_url not in _employees_cache:
+        try:
+            employees = _scrape(employees_url)
+        except Exception as e:
+            raise HTTPException(500, f"Scrape failed: {e}")
+        if not employees:
+            raise HTTPException(400, f"No employees found at {employees_url}")
+        _employees_cache[employees_url] = (employees, {e["email"]: e.get("name", "") for e in employees})
+    employees, name_by_email = _employees_cache[employees_url]
+
+    if employees_url not in _face_db_tflite:
+        db = _build_db(employees)
+        if not db:
+            raise HTTPException(500, "Face DB build failed")
+        _face_db_tflite[employees_url] = db
+    db = _face_db_tflite[employees_url]
+    T["db_end"] = time.perf_counter()
+    print(f"[v2][timing] face DB: {T['db_end']-T['db_start']:.2f}s ({len(db)} employees)")
+
+    # ── STEP 2: Save + resize uploaded photos ─────────────────
+    T["upload_start"] = time.perf_counter()
+    raw_photos = [(await photo.read()) for photo in photos]
+
+    def _save_photos(tmp_dir):
+        for data in raw_photos:
+            fname = f"{uuid.uuid4()}.jpg"
+            pil   = Image.open(BytesIO(data)).convert("RGB")
+            w, h  = pil.size
+            scale = min(1024 / max(w, h), 1.0)
+            if scale < 1.0:
+                pil = pil.resize((int(w * scale), int(h * scale)), Image.BILINEAR)
+            pil.save(os.path.join(tmp_dir, fname), "JPEG", quality=92)
+
+    loop = asyncio.get_event_loop()
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        await loop.run_in_executor(None, lambda: _save_photos(tmp_dir))
+        n_photos = len(os.listdir(tmp_dir))
+        T["upload_end"] = time.perf_counter()
+        print(f"[v2][timing] upload+resize: {T['upload_end']-T['upload_start']:.2f}s, {n_photos} photos")
+
+        # ── STEP 3: Extract all faces ──────────────────────────
+        T["extract_start"] = time.perf_counter()
+        all_faces = await loop.run_in_executor(None, lambda: extract_all_faces(tmp_dir))
+        T["extract_end"] = time.perf_counter()
+        print(f"[v2][timing] face extraction: {T['extract_end']-T['extract_start']:.2f}s, {len(all_faces)} faces total")
+
+        # ── STEP 4: Cluster faces ──────────────────────────────
+        T["cluster_start"] = time.perf_counter()
+        clusters = _cluster_faces_v2(all_faces, threshold=CLUSTER_THRESHOLD)
+        T["cluster_end"] = time.perf_counter()
+        print(f"[v2][timing] clustering: {T['cluster_end']-T['cluster_start']:.2f}s, {len(clusters)} cluster(s)")
+        for i, c in enumerate(clusters):
+            print(f"  Cluster {i+1}: {len(c.faces)} face(s) in {len(c.photo_paths)} photo(s)")
+
+        # ── STEP 5: Match clusters to employees ────────────────
+        T["match_start"] = time.perf_counter()
+        matches = match_clusters_to_employees(clusters, db, threshold=0.70)
+        T["match_end"] = time.perf_counter()
+        matched = sum(len(p) for p in matches.values())
+        print(f"[v2][timing] matching: {T['match_end']-T['match_start']:.2f}s → {len(matches)} person(s), {matched} photo(s)")
+
+        # ── STEP 6: Send emails ────────────────────────────────
+        T["smtp_start"] = time.perf_counter()
+        emails_sent = 0
+        failed      = 0
+        details     = []
+        demo_recipient = "alexandradumitrescu04@gmail.com"
+
+        def _send_one_v2(item):
+            email, photo_paths = item
+            person_name = name_by_email.get(email, "")
+            subject     = f"{person_name} — {email}" if person_name else email
+            msg = MIMEMultipart()
+            msg["From"]    = smtp_user
+            msg["To"]      = demo_recipient
+            msg["Subject"] = subject
+            msg.attach(MIMEText(
+                f"Hi,\n\nWe found {len(photo_paths)} photo(s) of you.\n\nBest regards", "plain"))
+            for path in photo_paths:
+                with open(path, "rb") as fh:
+                    img_part = MIMEImage(fh.read())
+                img_part.add_header("Content-Disposition", "attachment",
+                                    filename=os.path.basename(path))
+                msg.attach(img_part)
+            with smtplib.SMTP(smtp_host, smtp_port, timeout=30) as conn:
+                conn.ehlo(); conn.starttls(); conn.login(smtp_user, smtp_pass)
+                conn.sendmail(smtp_user, demo_recipient, msg.as_string())
+            return email, len(photo_paths)
+
+        from concurrent.futures import ThreadPoolExecutor as _TPE
+        with _TPE(max_workers=5) as pool:
+            send_items = [(email, list(paths)) for email, paths in matches.items()]
+            futures = {pool.submit(_send_one_v2, item): item for item in send_items}
+            for future in futures:
+                try:
+                    email, count = future.result()
+                    emails_sent += 1
+                    details.append(DeliveryDetail(email=email, photos_count=count))
+                    print(f"  [v2] email sent → {email} ({count} photos)")
+                except Exception as exc:
+                    print(f"  [v2] send failed: {exc}")
+                    failed += 1
+        T["smtp_end"] = time.perf_counter()
+        T["total"]    = time.perf_counter() - T["start"]
+
+        print(f"\n{'='*50}")
+        print(f"[v2] DELIVERY v2 SUMMARY")
+        print(f"  face DB:    {T['db_end']-T['db_start']:.2f}s")
+        print(f"  upload:     {T['upload_end']-T['upload_start']:.2f}s")
+        print(f"  extraction: {T['extract_end']-T['extract_start']:.2f}s")
+        print(f"  clustering: {T['cluster_end']-T['cluster_start']:.2f}s")
+        print(f"  matching:   {T['match_end']-T['match_start']:.2f}s")
+        print(f"  smtp:       {T['smtp_end']-T['smtp_start']:.2f}s")
+        print(f"  TOTAL:      {T['total']:.2f}s")
+        print(f"{'='*50}\n")
+
+        return DeliveryRunV2Response(
+            clusters_found=len(clusters),
+            matched=matched,
+            emails_sent=emails_sent,
+            failed=failed,
+            details=details,
+        )
+
+
+# ============================================================
 # ENTRY POINT
 # ============================================================
 
