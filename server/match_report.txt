@@ -1,0 +1,1288 @@
+MATCH REPORT — 2026-06-03 14:59:10
+Photos: 99  |  Threshold: 0.7  |  Employees: 17
+======================================================================
+
+--- 0249c874-df1a-45df-a367-ccaad588dad9.jpg  (1 face(s), 0.14s) ---
+  Face #1  top-5:
+    1. 0.2815  susan.doniz@disney.com  
+    2. 0.1289  nikhil.kolar@microsoft.com  
+    3. 0.1252  lauri.palmieri@salesforce.com  
+    4. 0.1160  matthew.pankey@fortune.com  
+    5. 0.0852  sean.muzzy@acxiom.com  
+
+--- 0582b98a-dac9-44f6-b110-c8d8d828a48c.jpg  (1 face(s), 0.16s) ---
+  Face #1  top-5:
+    1. 0.4251  susan.doniz@disney.com  
+    2. 0.2548  cristiano.amon@qualcomm.com  
+    3. 0.2197  zeev.klein@landmarkventures.com  
+    4. 0.1701  linda.kenney@jpmorgan.com  
+    5. 0.1519  sean.muzzy@acxiom.com  
+
+--- 0005ab43-a8d9-4cb2-927a-00b60b5e3f9f.jpg  (1 face(s), 0.17s) ---
+  Face #1  top-5:
+    1. 0.4377  cristiano.amon@qualcomm.com  
+    2. 0.3050  susan.doniz@disney.com  
+    3. 0.2809  zeev.klein@landmarkventures.com  
+    4. 0.2201  sean.muzzy@acxiom.com  
+    5. 0.2117  nikhil.kolar@microsoft.com  
+
+--- 045cd220-e036-46e0-8d75-74a2b075384f.jpg  (5 face(s), 1.38s) ---
+  Face #1  top-5:
+    1. 0.4578  susan.doniz@disney.com  
+    2. 0.2459  nikhil.kolar@microsoft.com  
+    3. 0.1839  cristiano.amon@qualcomm.com  
+    4. 0.1515  linda.kenney@jpmorgan.com  
+    5. 0.1436  matthew.pankey@fortune.com  
+  Face #2  top-5:
+    1. 0.2540  susan.doniz@disney.com  
+    2. 0.1877  lauri.palmieri@salesforce.com  
+    3. 0.1343  linda.kenney@jpmorgan.com  
+    4. 0.1270  nikhil.kolar@microsoft.com  
+    5. 0.0721  allie.garfinkle@fortune.com  
+  Face #3  top-5:
+    1. 0.6378  susan.doniz@disney.com  
+    2. 0.2044  cristiano.amon@qualcomm.com  
+    3. 0.1724  nikhil.kolar@microsoft.com  
+    4. 0.1650  zeev.klein@landmarkventures.com  
+    5. 0.1637  linda.kenney@jpmorgan.com  
+  Face #4  top-5:
+    1. 0.3973  allie.garfinkle@fortune.com  
+    2. 0.2375  susan.doniz@disney.com  
+    3. 0.1850  courtney.keating@acxiom.com  
+    4. 0.0866  matthew.pankey@fortune.com  
+    5. 0.0602  andrew.nusca@fortune.com  
+  Face #5  top-5:
+    1. 0.3115  susan.doniz@disney.com  
+    2. 0.1888  nikhil.kolar@microsoft.com  
+    3. 0.1583  cristiano.amon@qualcomm.com  
+    4. 0.1559  sean.muzzy@acxiom.com  
+    5. 0.1274  linda.kenney@jpmorgan.com  
+
+--- 0b88cb94-cb88-4260-a929-bf119d09e1c5.jpg  (5 face(s), 1.44s) ---
+  Face #1  top-5:
+    1. 0.3585  susan.doniz@disney.com  
+    2. 0.1890  pankaj.kedia@2468ventures.com  
+    3. 0.1884  nikhil.kolar@microsoft.com  
+    4. 0.1633  linda.kenney@jpmorgan.com  
+    5. 0.1049  allie.garfinkle@fortune.com  
+  Face #2  top-5:
+    1. 0.3727  susan.doniz@disney.com  
+    2. 0.1488  linda.kenney@jpmorgan.com  
+    3. 0.1369  allie.garfinkle@fortune.com  
+    4. 0.0983  hari.bala@solventum.com  
+    5. 0.0609  pankaj.kedia@2468ventures.com  
+  Face #3  top-5:
+    1. 0.5705  susan.doniz@disney.com  
+    2. 0.3282  zeev.klein@landmarkventures.com  
+    3. 0.2764  cristiano.amon@qualcomm.com  
+    4. 0.2424  nikhil.kolar@microsoft.com  
+    5. 0.1829  linda.kenney@jpmorgan.com  
+  Face #4  top-5:
+    1. 0.4636  susan.doniz@disney.com  
+    2. 0.1910  nikhil.kolar@microsoft.com  
+    3. 0.1794  zeev.klein@landmarkventures.com  
+    4. 0.1624  linda.kenney@jpmorgan.com  
+    5. 0.1366  cristiano.amon@qualcomm.com  
+  Face #5  top-5:
+    1. 0.2927  susan.doniz@disney.com  
+    2. 0.1664  linda.kenney@jpmorgan.com  
+    3. 0.1379  nikhil.kolar@microsoft.com  
+    4. 0.1213  sean.muzzy@acxiom.com  
+    5. 0.0929  matthew.pankey@fortune.com  
+
+--- 0ce9b0e7-70af-4871-a654-a4214677a866.jpg  (5 face(s), 1.53s) ---
+  Face #1  top-5:
+    1. 0.1841  susan.doniz@disney.com  
+    2. 0.1651  linda.kenney@jpmorgan.com  
+    3. 0.1395  zeev.klein@landmarkventures.com  
+    4. 0.1392  nikhil.kolar@microsoft.com  
+    5. 0.1353  pankaj.kedia@2468ventures.com  
+  Face #2  top-5:
+    1. 0.4116  susan.doniz@disney.com  
+    2. 0.1921  nikhil.kolar@microsoft.com  
+    3. 0.1917  zeev.klein@landmarkventures.com  
+    4. 0.1372  linda.kenney@jpmorgan.com  
+    5. 0.1135  hari.bala@solventum.com  
+  Face #3  top-5:
+    1. 0.2165  nikhil.kolar@microsoft.com  
+    2. 0.1944  linda.kenney@jpmorgan.com  
+    3. 0.1557  susan.doniz@disney.com  
+    4. 0.1421  pankaj.kedia@2468ventures.com  
+    5. 0.1368  zeev.klein@landmarkventures.com  
+  Face #4  top-5:
+    1. 0.6578  andrew.nusca@fortune.com  
+    2. 0.4036  cristiano.amon@qualcomm.com  
+    3. 0.3414  zeev.klein@landmarkventures.com  
+    4. 0.2621  sean.muzzy@acxiom.com  
+    5. 0.2432  pankaj.kedia@2468ventures.com  
+  Face #5  top-5:
+    1. 0.4569  susan.doniz@disney.com  
+    2. 0.2158  nikhil.kolar@microsoft.com  
+    3. 0.1648  zeev.klein@landmarkventures.com  
+    4. 0.1604  linda.kenney@jpmorgan.com  
+    5. 0.1380  hari.bala@solventum.com  
+
+--- 0dbc2968-dd5a-422d-80b1-688e73124c46.jpg  (5 face(s), 1.56s) ---
+  Face #1  top-5:
+    1. 0.6831  bill.briggs@deloitte.com  
+    2. 0.2989  cristiano.amon@qualcomm.com  
+    3. 0.2486  zeev.klein@landmarkventures.com  
+    4. 0.1143  matthew.pankey@fortune.com  
+    5. 0.0990  linda.kenney@jpmorgan.com  
+  Face #2  top-5:
+    1. 0.4041  courtney.keating@acxiom.com  
+    2. 0.3578  linda.kenney@jpmorgan.com  
+    3. 0.1652  jodawn.whitlock@gls-us.com  
+    4. 0.1425  sagar.mehta@opentable.com  
+    5. 0.1328  matthew.pankey@fortune.com  
+  Face #3  top-5:
+    1. 0.7271  allie.garfinkle@fortune.com  ✓ MATCH
+    2. 0.2860  courtney.keating@acxiom.com  
+    3. 0.1882  susan.doniz@disney.com  
+    4. 0.1693  bill.briggs@deloitte.com  
+    5. 0.1131  lauri.palmieri@salesforce.com  
+  Face #4  top-5:
+    1. 0.7653  lauri.palmieri@salesforce.com  ✓ MATCH
+    2. 0.3871  jodawn.whitlock@gls-us.com  
+    3. 0.2906  linda.kenney@jpmorgan.com  
+    4. 0.2138  melissa.mathews@lmco.com  
+    5. 0.1919  courtney.keating@acxiom.com  
+  Face #5  top-5:
+    1. 0.5448  hari.bala@solventum.com  
+    2. 0.2565  andrew.nusca@fortune.com  
+    3. 0.2382  sagar.mehta@opentable.com  
+    4. 0.1721  nikhil.kolar@microsoft.com  
+    5. 0.1121  lauri.palmieri@salesforce.com  
+
+--- 0de18e09-badd-42c9-8d60-c24777cf1716.jpg  (1 face(s), 1.47s) ---
+  Face #1  top-5:
+    1. 0.4665  susan.doniz@disney.com  
+    2. 0.2303  cristiano.amon@qualcomm.com  
+    3. 0.1925  bill.briggs@deloitte.com  
+    4. 0.1450  linda.kenney@jpmorgan.com  
+    5. 0.1324  sean.muzzy@acxiom.com  
+
+--- 0e2ba4e5-0474-4c63-8801-846debf62c4c.jpg  (1 face(s), 1.40s) ---
+  Face #1  top-5:
+    1. 0.1479  linda.kenney@jpmorgan.com  
+    2. 0.1384  hari.bala@solventum.com  
+    3. 0.1124  sean.muzzy@acxiom.com  
+    4. 0.0996  lauri.palmieri@salesforce.com  
+    5. 0.0617  jodawn.whitlock@gls-us.com  
+
+--- 0eb76d84-9559-4889-a983-a5d615b08002.jpg  (1 face(s), 1.32s) ---
+  Face #1  top-5:
+    1. 0.5792  susan.doniz@disney.com  
+    2. 0.1948  zeev.klein@landmarkventures.com  
+    3. 0.1919  bill.briggs@deloitte.com  
+    4. 0.1830  cristiano.amon@qualcomm.com  
+    5. 0.1731  pankaj.kedia@2468ventures.com  
+
+--- 112f70b3-8dab-403d-acca-ff3b2bf49674.jpg  (1 face(s), 1.29s) ---
+  Face #1  top-5:
+    1. 0.7271  susan.doniz@disney.com  ✓ MATCH
+    2. 0.1010  nikhil.kolar@microsoft.com  
+    3. 0.0883  zeev.klein@landmarkventures.com  
+    4. 0.0724  bill.briggs@deloitte.com  
+    5. 0.0632  pankaj.kedia@2468ventures.com  
+
+--- 1500dca0-49ed-436b-ba56-9dbd634573a3.jpg  (1 face(s), 0.94s) ---
+  Face #1  top-5:
+    1. 0.1641  lauri.palmieri@salesforce.com  
+    2. 0.1481  linda.kenney@jpmorgan.com  
+    3. 0.0983  hari.bala@solventum.com  
+    4. 0.0773  jodawn.whitlock@gls-us.com  
+    5. 0.0310  pankaj.kedia@2468ventures.com  
+
+--- 175331a7-9c01-4681-885d-976ec50d45bc.jpg  (1 face(s), 0.85s) ---
+  Face #1  top-5:
+    1. 0.4864  susan.doniz@disney.com  
+    2. 0.2855  cristiano.amon@qualcomm.com  
+    3. 0.2628  zeev.klein@landmarkventures.com  
+    4. 0.1861  linda.kenney@jpmorgan.com  
+    5. 0.1617  nikhil.kolar@microsoft.com  
+
+--- 18ec3e7b-011c-45b7-ad0f-ccedf5dc1953.jpg  (1 face(s), 0.93s) ---
+  Face #1  top-5:
+    1. 0.7636  susan.doniz@disney.com  ✓ MATCH
+    2. 0.1522  allie.garfinkle@fortune.com  
+    3. 0.0888  linda.kenney@jpmorgan.com  
+    4. 0.0851  sean.muzzy@acxiom.com  
+    5. 0.0744  cristiano.amon@qualcomm.com  
+
+--- 194cb046-3fb8-407c-a357-17a4d7a771e2.jpg  (1 face(s), 1.03s) ---
+  Face #1  top-5:
+    1. 0.5835  susan.doniz@disney.com  
+    2. 0.2436  sean.muzzy@acxiom.com  
+    3. 0.1805  cristiano.amon@qualcomm.com  
+    4. 0.1316  nikhil.kolar@microsoft.com  
+    5. 0.1105  linda.kenney@jpmorgan.com  
+
+--- 1c714ad0-6d76-4513-a1ed-ccf2bbd1525a.jpg  (1 face(s), 1.02s) ---
+  Face #1  top-5:
+    1. 0.4607  susan.doniz@disney.com  
+    2. 0.2163  nikhil.kolar@microsoft.com  
+    3. 0.1944  zeev.klein@landmarkventures.com  
+    4. 0.1669  linda.kenney@jpmorgan.com  
+    5. 0.1373  cristiano.amon@qualcomm.com  
+
+--- 1d280fb8-49c1-43ca-a764-16f844a06154.jpg  (1 face(s), 1.40s) ---
+  Face #1  top-5:
+    1. 0.7522  susan.doniz@disney.com  ✓ MATCH
+    2. 0.2227  cristiano.amon@qualcomm.com  
+    3. 0.2137  sean.muzzy@acxiom.com  
+    4. 0.1562  linda.kenney@jpmorgan.com  
+    5. 0.1463  zeev.klein@landmarkventures.com  
+
+--- 1d641395-b7cc-45e3-a4e3-9682be180f43.jpg  (1 face(s), 1.39s) ---
+  Face #1  top-5:
+    1. 0.2950  susan.doniz@disney.com  
+    2. 0.2327  nikhil.kolar@microsoft.com  
+    3. 0.1908  zeev.klein@landmarkventures.com  
+    4. 0.1603  pankaj.kedia@2468ventures.com  
+    5. 0.1422  linda.kenney@jpmorgan.com  
+
+--- 1e935b60-c61a-48a4-aa4f-f8292b8a4414.jpg  (1 face(s), 1.45s) ---
+  Face #1  top-5:
+    1. 0.5305  susan.doniz@disney.com  
+    2. 0.2556  cristiano.amon@qualcomm.com  
+    3. 0.2175  zeev.klein@landmarkventures.com  
+    4. 0.2065  sean.muzzy@acxiom.com  
+    5. 0.1766  linda.kenney@jpmorgan.com  
+
+--- 1f64a422-3c0a-4f1d-af59-4544b258b335.jpg  (1 face(s), 1.45s) ---
+  Face #1  top-5:
+    1. 0.3326  susan.doniz@disney.com  
+    2. 0.1856  cristiano.amon@qualcomm.com  
+    3. 0.1802  lauri.palmieri@salesforce.com  
+    4. 0.1691  linda.kenney@jpmorgan.com  
+    5. 0.1181  sean.muzzy@acxiom.com  
+
+--- 23638833-f8b8-4b15-9072-237a9e5e3b3a.jpg  (1 face(s), 1.43s) ---
+  Face #1  top-5:
+    1. 0.2028  susan.doniz@disney.com  
+    2. 0.1933  linda.kenney@jpmorgan.com  
+    3. 0.1809  nikhil.kolar@microsoft.com  
+    4. 0.1607  hari.bala@solventum.com  
+    5. 0.1226  zeev.klein@landmarkventures.com  
+
+--- 25d30eea-c4e5-4531-8fda-e47a0fc5da76.jpg  (1 face(s), 1.40s) ---
+  Face #1  top-5:
+    1. 0.4773  susan.doniz@disney.com  
+    2. 0.2343  cristiano.amon@qualcomm.com  
+    3. 0.2196  zeev.klein@landmarkventures.com  
+    4. 0.2065  linda.kenney@jpmorgan.com  
+    5. 0.1850  nikhil.kolar@microsoft.com  
+
+--- 26aef8d3-377e-492d-96d8-d43cb2208bda.jpg  (1 face(s), 1.58s) ---
+  Face #1  top-5:
+    1. 0.7377  susan.doniz@disney.com  ✓ MATCH
+    2. 0.2177  cristiano.amon@qualcomm.com  
+    3. 0.1599  sean.muzzy@acxiom.com  
+    4. 0.1339  linda.kenney@jpmorgan.com  
+    5. 0.1212  nikhil.kolar@microsoft.com  
+
+--- 277c2138-d1fc-4ea2-bf7c-67aff6b70432.jpg  (3 face(s), 1.46s) ---
+  Face #1  top-5:
+    1. 0.3560  susan.doniz@disney.com  
+    2. 0.2813  linda.kenney@jpmorgan.com  
+    3. 0.1455  allie.garfinkle@fortune.com  
+    4. 0.1436  cristiano.amon@qualcomm.com  
+    5. 0.1401  andrew.nusca@fortune.com  
+  Face #2  top-5:
+    1. 0.4951  susan.doniz@disney.com  
+    2. 0.3140  nikhil.kolar@microsoft.com  
+    3. 0.2162  lauri.palmieri@salesforce.com  
+    4. 0.1094  hari.bala@solventum.com  
+    5. 0.0430  matthew.pankey@fortune.com  
+  Face #3  top-5:
+    1. 0.3373  susan.doniz@disney.com  
+    2. 0.1284  linda.kenney@jpmorgan.com  
+    3. 0.0802  cristiano.amon@qualcomm.com  
+    4. 0.0683  zeev.klein@landmarkventures.com  
+    5. 0.0316  bill.briggs@deloitte.com  
+
+--- 2aeb303c-0197-4382-87c0-d2d20554cb4c.jpg  (2 face(s), 1.43s) ---
+  Face #1  top-5:
+    1. 0.3288  cristiano.amon@qualcomm.com  
+    2. 0.2283  matthew.pankey@fortune.com  
+    3. 0.2190  bill.briggs@deloitte.com  
+    4. 0.1577  nikhil.kolar@microsoft.com  
+    5. 0.1555  jodawn.whitlock@gls-us.com  
+  Face #2  top-5:
+    1. 0.2556  susan.doniz@disney.com  
+    2. 0.1952  lauri.palmieri@salesforce.com  
+    3. 0.1799  sagar.mehta@opentable.com  
+    4. 0.1177  nikhil.kolar@microsoft.com  
+    5. 0.1003  courtney.keating@acxiom.com  
+
+--- 29090ce6-7d14-44db-ada4-34c7f649e7c7.jpg  (5 face(s), 1.46s) ---
+  Face #1  top-5:
+    1. 0.3363  susan.doniz@disney.com  
+    2. 0.1909  nikhil.kolar@microsoft.com  
+    3. 0.1866  linda.kenney@jpmorgan.com  
+    4. 0.1307  zeev.klein@landmarkventures.com  
+    5. 0.1172  hari.bala@solventum.com  
+  Face #2  top-5:
+    1. 0.3016  susan.doniz@disney.com  
+    2. 0.1774  linda.kenney@jpmorgan.com  
+    3. 0.1411  zeev.klein@landmarkventures.com  
+    4. 0.1379  nikhil.kolar@microsoft.com  
+    5. 0.1216  hari.bala@solventum.com  
+  Face #3  top-5:
+    1. 0.3384  susan.doniz@disney.com  
+    2. 0.1892  linda.kenney@jpmorgan.com  
+    3. 0.1617  nikhil.kolar@microsoft.com  
+    4. 0.1534  allie.garfinkle@fortune.com  
+    5. 0.1243  hari.bala@solventum.com  
+  Face #4  top-5:
+    1. 0.2546  susan.doniz@disney.com  
+    2. 0.2295  zeev.klein@landmarkventures.com  
+    3. 0.2009  linda.kenney@jpmorgan.com  
+    4. 0.1966  sean.muzzy@acxiom.com  
+    5. 0.1613  cristiano.amon@qualcomm.com  
+  Face #5  top-5:
+    1. 0.2194  nikhil.kolar@microsoft.com  
+    2. 0.1941  linda.kenney@jpmorgan.com  
+    3. 0.1843  susan.doniz@disney.com  
+    4. 0.1361  bill.briggs@deloitte.com  
+    5. 0.1297  hari.bala@solventum.com  
+
+--- 2d278688-5961-4d77-9b1e-9503f08fa6c7.jpg  (2 face(s), 1.42s) ---
+  Face #1  top-5:
+    1. 0.3766  susan.doniz@disney.com  
+    2. 0.2135  linda.kenney@jpmorgan.com  
+    3. 0.2060  zeev.klein@landmarkventures.com  
+    4. 0.1836  nikhil.kolar@microsoft.com  
+    5. 0.1241  cristiano.amon@qualcomm.com  
+  Face #2  top-5:
+    1. 0.4368  susan.doniz@disney.com  
+    2. 0.2301  nikhil.kolar@microsoft.com  
+    3. 0.1901  zeev.klein@landmarkventures.com  
+    4. 0.1420  linda.kenney@jpmorgan.com  
+    5. 0.1414  hari.bala@solventum.com  
+
+--- 3002b96f-cca9-405f-97de-6cff628c2239.jpg  (1 face(s), 1.48s) ---
+  Face #1  top-5:
+    1. 0.6252  susan.doniz@disney.com  
+    2. 0.2222  nikhil.kolar@microsoft.com  
+    3. 0.2195  cristiano.amon@qualcomm.com  
+    4. 0.2043  sean.muzzy@acxiom.com  
+    5. 0.1579  linda.kenney@jpmorgan.com  
+
+--- 3322ab87-29b4-4f38-abee-d319f776e13c.jpg  (2 face(s), 1.38s) ---
+  Face #1  top-5:
+    1. 0.5195  susan.doniz@disney.com  
+    2. 0.2151  zeev.klein@landmarkventures.com  
+    3. 0.1811  cristiano.amon@qualcomm.com  
+    4. 0.1677  nikhil.kolar@microsoft.com  
+    5. 0.1579  linda.kenney@jpmorgan.com  
+  Face #2  top-5:
+    1. 0.3369  bill.briggs@deloitte.com  
+    2. 0.3075  susan.doniz@disney.com  
+    3. 0.2485  pankaj.kedia@2468ventures.com  
+    4. 0.2064  nikhil.kolar@microsoft.com  
+    5. 0.1113  allie.garfinkle@fortune.com  
+
+--- 352479bd-38c9-46d4-8d24-026c95af7d44.jpg  (2 face(s), 1.37s) ---
+  Face #1  top-5:
+    1. 0.2231  susan.doniz@disney.com  
+    2. 0.1982  nikhil.kolar@microsoft.com  
+    3. 0.1950  allie.garfinkle@fortune.com  
+    4. 0.1549  cristiano.amon@qualcomm.com  
+    5. 0.0935  linda.kenney@jpmorgan.com  
+  Face #2  top-5:
+    1. 0.3283  zeev.klein@landmarkventures.com  
+    2. 0.2534  nikhil.kolar@microsoft.com  
+    3. 0.2526  linda.kenney@jpmorgan.com  
+    4. 0.2435  hari.bala@solventum.com  
+    5. 0.1863  courtney.keating@acxiom.com  
+
+--- 35b333e7-e1a7-4eb0-bb16-b62b41bcfaf5.jpg  (2 face(s), 1.32s) ---
+  Face #1  top-5:
+    1. 0.3664  susan.doniz@disney.com  
+    2. 0.2619  cristiano.amon@qualcomm.com  
+    3. 0.2124  linda.kenney@jpmorgan.com  
+    4. 0.1980  matthew.pankey@fortune.com  
+    5. 0.1918  sean.muzzy@acxiom.com  
+  Face #2  top-5:
+    1. 0.5465  susan.doniz@disney.com  
+    2. 0.2985  allie.garfinkle@fortune.com  
+    3. 0.2021  courtney.keating@acxiom.com  
+    4. 0.1898  linda.kenney@jpmorgan.com  
+    5. 0.1632  cristiano.amon@qualcomm.com  
+
+--- 367dad3d-90d4-4252-bcff-8feae90fbb53.jpg  (2 face(s), 1.36s) ---
+  Face #1  top-5:
+    1. 0.4966  susan.doniz@disney.com  
+    2. 0.2898  nikhil.kolar@microsoft.com  
+    3. 0.1359  linda.kenney@jpmorgan.com  
+    4. 0.1312  cristiano.amon@qualcomm.com  
+    5. 0.1228  lauri.palmieri@salesforce.com  
+  Face #2  top-5:
+    1. 0.7530  bill.briggs@deloitte.com  ✓ MATCH
+    2. 0.4515  cristiano.amon@qualcomm.com  
+    3. 0.3240  zeev.klein@landmarkventures.com  
+    4. 0.1755  matthew.pankey@fortune.com  
+    5. 0.0831  allie.garfinkle@fortune.com  
+
+--- 38da0538-58e9-4342-ad23-62ef4379812b.jpg  (1 face(s), 1.33s) ---
+  Face #1  top-5:
+    1. 0.2943  susan.doniz@disney.com  
+    2. 0.2078  sean.muzzy@acxiom.com  
+    3. 0.2029  cristiano.amon@qualcomm.com  
+    4. 0.0852  zeev.klein@landmarkventures.com  
+    5. 0.0676  andrew.nusca@fortune.com  
+
+--- 3c49ff76-dcbf-4b48-bdf3-17d65a97826b.jpg  (1 face(s), 1.30s) ---
+  Face #1  top-5:
+    1. 0.4604  susan.doniz@disney.com  
+    2. 0.1844  linda.kenney@jpmorgan.com  
+    3. 0.1533  cristiano.amon@qualcomm.com  
+    4. 0.1367  allie.garfinkle@fortune.com  
+    5. 0.1017  nikhil.kolar@microsoft.com  
+
+--- 44d0e14e-0e6d-459d-ac02-ea737f5f41e1.jpg  (1 face(s), 1.33s) ---
+  Face #1  top-5:
+    1. 0.4226  susan.doniz@disney.com  
+    2. 0.1337  allie.garfinkle@fortune.com  
+    3. 0.1221  matthew.pankey@fortune.com  
+    4. 0.0925  zeev.klein@landmarkventures.com  
+    5. 0.0868  linda.kenney@jpmorgan.com  
+
+--- 45ad1727-8423-437e-8838-f7239349000d.jpg  (1 face(s), 1.31s) ---
+  Face #1  top-5:
+    1. 0.4038  zeev.klein@landmarkventures.com  
+    2. 0.3646  linda.kenney@jpmorgan.com  
+    3. 0.3258  cristiano.amon@qualcomm.com  
+    4. 0.2758  matthew.pankey@fortune.com  
+    5. 0.2438  bill.briggs@deloitte.com  
+
+--- 4c02477a-20e3-40da-9146-4569e555c42f.jpg  (2 face(s), 1.51s) ---
+  Face #1  top-5:
+    1. 0.2564  allie.garfinkle@fortune.com  
+    2. 0.2181  pankaj.kedia@2468ventures.com  
+    3. 0.1934  linda.kenney@jpmorgan.com  
+    4. 0.1428  lauri.palmieri@salesforce.com  
+    5. 0.1284  susan.doniz@disney.com  
+  Face #2  top-5:
+    1. 0.6346  susan.doniz@disney.com  
+    2. 0.2802  allie.garfinkle@fortune.com  
+    3. 0.1810  pankaj.kedia@2468ventures.com  
+    4. 0.1701  courtney.keating@acxiom.com  
+    5. 0.1397  lauri.palmieri@salesforce.com  
+
+--- 4ca6aa8d-917a-4dec-91ca-fbe7317aebd1.jpg  (2 face(s), 1.55s) ---
+  Face #1  top-5:
+    1. 0.2080  hari.bala@solventum.com  
+    2. 0.1905  sean.muzzy@acxiom.com  
+    3. 0.1611  linda.kenney@jpmorgan.com  
+    4. 0.1532  susan.doniz@disney.com  
+    5. 0.1474  matthew.pankey@fortune.com  
+  Face #2  top-5:
+    1. 0.2985  nikhil.kolar@microsoft.com  
+    2. 0.2166  hari.bala@solventum.com  
+    3. 0.2064  linda.kenney@jpmorgan.com  
+    4. 0.2048  cristiano.amon@qualcomm.com  
+    5. 0.2008  matthew.pankey@fortune.com  
+
+--- 4d004f4e-8c88-4826-b3e8-a01fbab5db0e.jpg  (2 face(s), 1.55s) ---
+  Face #1  top-5:
+    1. 0.2466  lauri.palmieri@salesforce.com  
+    2. 0.1633  susan.doniz@disney.com  
+    3. 0.1495  nikhil.kolar@microsoft.com  
+    4. 0.0809  linda.kenney@jpmorgan.com  
+    5. 0.0509  jodawn.whitlock@gls-us.com  
+  Face #2  top-5:
+    1. 0.2709  nikhil.kolar@microsoft.com  
+    2. 0.2094  lauri.palmieri@salesforce.com  
+    3. 0.2090  susan.doniz@disney.com  
+    4. 0.0805  linda.kenney@jpmorgan.com  
+    5. 0.0778  hari.bala@solventum.com  
+
+--- 51a24127-fae1-4f0c-addf-1ddd8ea94a56.jpg  (2 face(s), 1.60s) ---
+  Face #1  top-5:
+    1. 0.4456  linda.kenney@jpmorgan.com  
+    2. 0.3327  cristiano.amon@qualcomm.com  
+    3. 0.2547  sean.muzzy@acxiom.com  
+    4. 0.2100  courtney.keating@acxiom.com  
+    5. 0.1970  matthew.pankey@fortune.com  
+  Face #2  top-5:
+    1. 0.4844  linda.kenney@jpmorgan.com  
+    2. 0.3030  courtney.keating@acxiom.com  
+    3. 0.2916  cristiano.amon@qualcomm.com  
+    4. 0.2489  sean.muzzy@acxiom.com  
+    5. 0.2366  matthew.pankey@fortune.com  
+
+--- 5573698d-3bde-4b55-a696-cc615014f6a2.jpg  (3 face(s), 1.35s) ---
+  Face #1  top-5:
+    1. 0.3703  susan.doniz@disney.com  
+    2. 0.2211  nikhil.kolar@microsoft.com  
+    3. 0.1266  linda.kenney@jpmorgan.com  
+    4. 0.0986  hari.bala@solventum.com  
+    5. 0.0899  allie.garfinkle@fortune.com  
+  Face #2  top-5:
+    1. 0.3922  susan.doniz@disney.com  
+    2. 0.1609  linda.kenney@jpmorgan.com  
+    3. 0.0783  lauri.palmieri@salesforce.com  
+    4. 0.0670  zeev.klein@landmarkventures.com  
+    5. 0.0652  courtney.keating@acxiom.com  
+  Face #3  top-5:
+    1. 0.5454  susan.doniz@disney.com  
+    2. 0.2599  zeev.klein@landmarkventures.com  
+    3. 0.1523  pankaj.kedia@2468ventures.com  
+    4. 0.1283  linda.kenney@jpmorgan.com  
+    5. 0.0724  nikhil.kolar@microsoft.com  
+
+--- 5a11aa96-480d-49a6-9e94-b717cf636a41.jpg  (3 face(s), 1.38s) ---
+  Face #1  top-5:
+    1. 0.5696  susan.doniz@disney.com  
+    2. 0.3144  zeev.klein@landmarkventures.com  
+    3. 0.2717  nikhil.kolar@microsoft.com  
+    4. 0.2711  cristiano.amon@qualcomm.com  
+    5. 0.1880  linda.kenney@jpmorgan.com  
+  Face #2  top-5:
+    1. 0.7323  hari.bala@solventum.com  ✓ MATCH
+    2. 0.3418  andrew.nusca@fortune.com  
+    3. 0.2324  nikhil.kolar@microsoft.com  
+    4. 0.1969  jodawn.whitlock@gls-us.com  
+    5. 0.1765  melissa.mathews@lmco.com  
+  Face #3  top-5:
+    1. 0.5862  hari.bala@solventum.com  
+    2. 0.2791  andrew.nusca@fortune.com  
+    3. 0.2164  nikhil.kolar@microsoft.com  
+    4. 0.2027  jodawn.whitlock@gls-us.com  
+    5. 0.1600  lauri.palmieri@salesforce.com  
+
+--- 5b5b497c-4506-4a8e-94ff-3b5067d7040e.jpg  (3 face(s), 1.46s) ---
+  Face #1  top-5:
+    1. 0.4668  susan.doniz@disney.com  
+    2. 0.2040  nikhil.kolar@microsoft.com  
+    3. 0.1810  zeev.klein@landmarkventures.com  
+    4. 0.1235  cristiano.amon@qualcomm.com  
+    5. 0.1076  hari.bala@solventum.com  
+  Face #2  top-5:
+    1. 0.4107  susan.doniz@disney.com  
+    2. 0.2778  nikhil.kolar@microsoft.com  
+    3. 0.1934  hari.bala@solventum.com  
+    4. 0.1800  linda.kenney@jpmorgan.com  
+    5. 0.0986  zeev.klein@landmarkventures.com  
+  Face #3  top-5:
+    1. 0.3441  susan.doniz@disney.com  
+    2. 0.2070  nikhil.kolar@microsoft.com  
+    3. 0.1688  linda.kenney@jpmorgan.com  
+    4. 0.1300  zeev.klein@landmarkventures.com  
+    5. 0.1248  hari.bala@solventum.com  
+
+--- 62684618-0190-48bf-abdc-815448a1eb6e.jpg  (2 face(s), 1.41s) ---
+  Face #1  top-5:
+    1. 0.3581  susan.doniz@disney.com  
+    2. 0.2581  lauri.palmieri@salesforce.com  
+    3. 0.1214  sean.muzzy@acxiom.com  
+    4. 0.1096  hari.bala@solventum.com  
+    5. 0.1028  linda.kenney@jpmorgan.com  
+  Face #2  top-5:
+    1. 0.4063  linda.kenney@jpmorgan.com  
+    2. 0.3409  courtney.keating@acxiom.com  
+    3. 0.2603  bill.briggs@deloitte.com  
+    4. 0.2591  jodawn.whitlock@gls-us.com  
+    5. 0.1559  sagar.mehta@opentable.com  
+
+--- 6745818b-8d65-402c-b3b6-ed5a7d5c06de.jpg  (1 face(s), 1.30s) ---
+  Face #1  top-5:
+    1. 0.3707  susan.doniz@disney.com  
+    2. 0.0470  hari.bala@solventum.com  
+    3. 0.0436  allie.garfinkle@fortune.com  
+    4. 0.0347  lauri.palmieri@salesforce.com  
+    5. 0.0202  nikhil.kolar@microsoft.com  
+
+--- 67cd9b34-f873-49cb-b3e3-0924891e8111.jpg  (1 face(s), 1.28s) ---
+  Face #1  top-5:
+    1. 0.3105  susan.doniz@disney.com  
+    2. 0.1934  linda.kenney@jpmorgan.com  
+    3. 0.1781  hari.bala@solventum.com  
+    4. 0.1424  nikhil.kolar@microsoft.com  
+    5. 0.0511  sean.muzzy@acxiom.com  
+
+--- 686a46ce-87b3-418f-9534-1ba7e22ed2a2.jpg  (1 face(s), 1.21s) ---
+  Face #1  top-5:
+    1. 0.4022  susan.doniz@disney.com  
+    2. 0.1860  nikhil.kolar@microsoft.com  
+    3. 0.1682  matthew.pankey@fortune.com  
+    4. 0.1582  cristiano.amon@qualcomm.com  
+    5. 0.1559  sean.muzzy@acxiom.com  
+
+--- 719303f1-c9ae-4e05-80a5-c78af9002ada.jpg  (1 face(s), 1.24s) ---
+  Face #1  top-5:
+    1. 0.5809  cristiano.amon@qualcomm.com  
+    2. 0.3229  bill.briggs@deloitte.com  
+    3. 0.2654  matthew.pankey@fortune.com  
+    4. 0.2364  sean.muzzy@acxiom.com  
+    5. 0.1764  nikhil.kolar@microsoft.com  
+
+--- 752357c1-e487-4cdb-aaa0-e43b7beac382.jpg  (1 face(s), 1.62s) ---
+  Face #1  top-5:
+    1. 0.5495  susan.doniz@disney.com  
+    2. 0.3174  cristiano.amon@qualcomm.com  
+    3. 0.2317  zeev.klein@landmarkventures.com  
+    4. 0.2127  sean.muzzy@acxiom.com  
+    5. 0.1961  nikhil.kolar@microsoft.com  
+
+--- 776e8c64-5264-4ddf-8d58-012953e1b494.jpg  (1 face(s), 1.74s) ---
+  Face #1  top-5:
+    1. 0.6454  susan.doniz@disney.com  
+    2. 0.1636  allie.garfinkle@fortune.com  
+    3. 0.0909  sean.muzzy@acxiom.com  
+    4. 0.0890  linda.kenney@jpmorgan.com  
+    5. 0.0788  zeev.klein@landmarkventures.com  
+
+--- 781020f6-4d4c-47e0-aa0a-21e6e402e863.jpg  (1 face(s), 1.73s) ---
+  Face #1  top-5:
+    1. 0.4219  susan.doniz@disney.com  
+    2. 0.2787  cristiano.amon@qualcomm.com  
+    3. 0.2203  sean.muzzy@acxiom.com  
+    4. 0.2045  nikhil.kolar@microsoft.com  
+    5. 0.1721  linda.kenney@jpmorgan.com  
+
+--- 792aeb41-30a2-4cea-8e17-1c49f1e08c19.jpg  (4 face(s), 1.72s) ---
+  Face #1  top-5:
+    1. 0.2998  susan.doniz@disney.com  
+    2. 0.1870  nikhil.kolar@microsoft.com  
+    3. 0.1257  linda.kenney@jpmorgan.com  
+    4. 0.1065  cristiano.amon@qualcomm.com  
+    5. 0.1047  matthew.pankey@fortune.com  
+  Face #2  top-5:
+    1. 0.5343  susan.doniz@disney.com  
+    2. 0.1982  nikhil.kolar@microsoft.com  
+    3. 0.1553  cristiano.amon@qualcomm.com  
+    4. 0.1360  sean.muzzy@acxiom.com  
+    5. 0.1312  linda.kenney@jpmorgan.com  
+  Face #3  top-5:
+    1. 0.5394  susan.doniz@disney.com  
+    2. 0.1559  sean.muzzy@acxiom.com  
+    3. 0.1387  nikhil.kolar@microsoft.com  
+    4. 0.1328  cristiano.amon@qualcomm.com  
+    5. 0.1325  matthew.pankey@fortune.com  
+  Face #4  top-5:
+    1. 0.5101  susan.doniz@disney.com  
+    2. 0.2113  nikhil.kolar@microsoft.com  
+    3. 0.2046  cristiano.amon@qualcomm.com  
+    4. 0.1396  sean.muzzy@acxiom.com  
+    5. 0.1029  lauri.palmieri@salesforce.com  
+
+--- 79a15a3e-3dc8-49bc-815a-722afe03cba7.jpg  (3 face(s), 1.52s) ---
+  Face #1  top-5:
+    1. 0.5099  susan.doniz@disney.com  
+    2. 0.1332  lauri.palmieri@salesforce.com  
+    3. 0.1278  nikhil.kolar@microsoft.com  
+    4. 0.0901  matthew.pankey@fortune.com  
+    5. 0.0453  andrew.nusca@fortune.com  
+  Face #2  top-5:
+    1. 0.3450  susan.doniz@disney.com  
+    2. 0.2070  nikhil.kolar@microsoft.com  
+    3. 0.1361  lauri.palmieri@salesforce.com  
+    4. 0.1348  linda.kenney@jpmorgan.com  
+    5. 0.1286  pankaj.kedia@2468ventures.com  
+  Face #3  top-5:
+    1. 0.5502  susan.doniz@disney.com  
+    2. 0.2514  linda.kenney@jpmorgan.com  
+    3. 0.1114  sagar.mehta@opentable.com  
+    4. 0.0984  lauri.palmieri@salesforce.com  
+    5. 0.0964  nikhil.kolar@microsoft.com  
+
+--- 79a23a8e-e660-4d45-804d-7e70f9f637c8.jpg  (3 face(s), 1.64s) ---
+  Face #1  top-5:
+    1. 0.4498  susan.doniz@disney.com  
+    2. 0.1042  linda.kenney@jpmorgan.com  
+    3. 0.0841  nikhil.kolar@microsoft.com  
+    4. 0.0629  andrew.nusca@fortune.com  
+    5. 0.0605  allie.garfinkle@fortune.com  
+  Face #2  top-5:
+    1. 0.4014  susan.doniz@disney.com  
+    2. 0.2202  nikhil.kolar@microsoft.com  
+    3. 0.1360  linda.kenney@jpmorgan.com  
+    4. 0.1288  hari.bala@solventum.com  
+    5. 0.1173  zeev.klein@landmarkventures.com  
+  Face #3  top-5:
+    1. 0.4702  susan.doniz@disney.com  
+    2. 0.2358  nikhil.kolar@microsoft.com  
+    3. 0.1455  zeev.klein@landmarkventures.com  
+    4. 0.1407  hari.bala@solventum.com  
+    5. 0.1341  linda.kenney@jpmorgan.com  
+
+--- 7b8b412f-e4c8-4996-aafb-f8ecdc24421c.jpg  (3 face(s), 1.63s) ---
+  Face #1  top-5:
+    1. 0.5057  susan.doniz@disney.com  
+    2. 0.2630  cristiano.amon@qualcomm.com  
+    3. 0.2063  linda.kenney@jpmorgan.com  
+    4. 0.1669  matthew.pankey@fortune.com  
+    5. 0.1574  zeev.klein@landmarkventures.com  
+  Face #2  top-5:
+    1. 0.3484  cristiano.amon@qualcomm.com  
+    2. 0.2147  sean.muzzy@acxiom.com  
+    3. 0.2071  matthew.pankey@fortune.com  
+    4. 0.1755  andrew.nusca@fortune.com  
+    5. 0.1502  nikhil.kolar@microsoft.com  
+  Face #3  top-5:
+    1. 0.6825  susan.doniz@disney.com  
+    2. 0.1364  cristiano.amon@qualcomm.com  
+    3. 0.1165  nikhil.kolar@microsoft.com  
+    4. 0.1014  allie.garfinkle@fortune.com  
+    5. 0.0979  linda.kenney@jpmorgan.com  
+
+--- 7c2a4f65-148a-4de6-8bb2-ff4ff674eaf4.jpg  (2 face(s), 1.47s) ---
+  Face #1  top-5:
+    1. 0.3684  susan.doniz@disney.com  
+    2. 0.2175  nikhil.kolar@microsoft.com  
+    3. 0.2121  matthew.pankey@fortune.com  
+    4. 0.2000  linda.kenney@jpmorgan.com  
+    5. 0.1796  cristiano.amon@qualcomm.com  
+  Face #2  top-5:
+    1. 0.6547  susan.doniz@disney.com  
+    2. 0.1693  nikhil.kolar@microsoft.com  
+    3. 0.1250  allie.garfinkle@fortune.com  
+    4. 0.0798  pankaj.kedia@2468ventures.com  
+    5. 0.0658  linda.kenney@jpmorgan.com  
+
+--- 7f005fa2-a421-485b-b014-19ca9c616b6e.jpg  (2 face(s), 1.22s) ---
+  Face #1  top-5:
+    1. 0.3648  courtney.keating@acxiom.com  
+    2. 0.3522  linda.kenney@jpmorgan.com  
+    3. 0.2141  bill.briggs@deloitte.com  
+    4. 0.1760  matthew.pankey@fortune.com  
+    5. 0.1235  jodawn.whitlock@gls-us.com  
+  Face #2  top-5:
+    1. 0.4413  susan.doniz@disney.com  
+    2. 0.1403  nikhil.kolar@microsoft.com  
+    3. 0.1073  lauri.palmieri@salesforce.com  
+    4. 0.0818  matthew.pankey@fortune.com  
+    5. 0.0757  allie.garfinkle@fortune.com  
+
+--- 82d338ee-702e-4efb-874b-d7bb9a46c969.jpg  (3 face(s), 1.21s) ---
+  Face #1  top-5:
+    1. 0.5815  susan.doniz@disney.com  
+    2. 0.3032  zeev.klein@landmarkventures.com  
+    3. 0.2456  cristiano.amon@qualcomm.com  
+    4. 0.2237  nikhil.kolar@microsoft.com  
+    5. 0.1815  linda.kenney@jpmorgan.com  
+  Face #2  top-5:
+    1. 0.3366  susan.doniz@disney.com  
+    2. 0.1905  nikhil.kolar@microsoft.com  
+    3. 0.1791  allie.garfinkle@fortune.com  
+    4. 0.1486  pankaj.kedia@2468ventures.com  
+    5. 0.1295  hari.bala@solventum.com  
+  Face #3  top-5:
+    1. 0.4038  susan.doniz@disney.com  
+    2. 0.2474  nikhil.kolar@microsoft.com  
+    3. 0.2105  lauri.palmieri@salesforce.com  
+    4. 0.0888  hari.bala@solventum.com  
+    5. 0.0886  linda.kenney@jpmorgan.com  
+
+--- 8786b856-4f9a-45ea-993e-391d37c35491.jpg  (1 face(s), 1.27s) ---
+  Face #1  top-5:
+    1. 0.6617  susan.doniz@disney.com  
+    2. 0.1466  allie.garfinkle@fortune.com  
+    3. 0.1184  zeev.klein@landmarkventures.com  
+    4. 0.0510  linda.kenney@jpmorgan.com  
+    5. 0.0509  bill.briggs@deloitte.com  
+
+--- 8b730aa6-97a0-4f2f-9ba5-79ac38fffe32.jpg  (1 face(s), 1.28s) ---
+  Face #1  top-5:
+    1. 0.2439  zeev.klein@landmarkventures.com  
+    2. 0.1843  linda.kenney@jpmorgan.com  
+    3. 0.1807  susan.doniz@disney.com  
+    4. 0.1778  pankaj.kedia@2468ventures.com  
+    5. 0.1145  allie.garfinkle@fortune.com  
+
+--- 8bea0360-2313-43e1-9b25-832ae0b78acd.jpg  (1 face(s), 1.22s) ---
+  Face #1  top-5:
+    1. 0.2384  hari.bala@solventum.com  
+    2. 0.2091  andrew.nusca@fortune.com  
+    3. 0.1565  linda.kenney@jpmorgan.com  
+    4. 0.1473  jodawn.whitlock@gls-us.com  
+    5. 0.0793  lauri.palmieri@salesforce.com  
+
+--- 8f815a96-cade-4472-a4db-8dff29dfbfd8.jpg  (2 face(s), 1.36s) ---
+  Face #1  top-5:
+    1. 0.5022  susan.doniz@disney.com  
+    2. 0.1299  linda.kenney@jpmorgan.com  
+    3. 0.1238  nikhil.kolar@microsoft.com  
+    4. 0.1150  zeev.klein@landmarkventures.com  
+    5. 0.0736  cristiano.amon@qualcomm.com  
+  Face #2  top-5:
+    1. 0.6089  bill.briggs@deloitte.com  
+    2. 0.5502  cristiano.amon@qualcomm.com  
+    3. 0.3208  zeev.klein@landmarkventures.com  
+    4. 0.2888  matthew.pankey@fortune.com  
+    5. 0.0990  susan.doniz@disney.com  
+
+--- 9843b158-34fa-4a1b-94b1-6a76009704f0.jpg  (2 face(s), 1.35s) ---
+  Face #1  top-5:
+    1. 0.5359  susan.doniz@disney.com  
+    2. 0.1918  linda.kenney@jpmorgan.com  
+    3. 0.1673  zeev.klein@landmarkventures.com  
+    4. 0.1480  allie.garfinkle@fortune.com  
+    5. 0.1206  nikhil.kolar@microsoft.com  
+  Face #2  top-5:
+    1. 0.5786  susan.doniz@disney.com  
+    2. 0.2275  allie.garfinkle@fortune.com  
+    3. 0.2001  zeev.klein@landmarkventures.com  
+    4. 0.1949  linda.kenney@jpmorgan.com  
+    5. 0.1578  cristiano.amon@qualcomm.com  
+
+--- 9181cd7e-d4ec-440f-a4c4-eac76a1508df.jpg  (2 face(s), 1.43s) ---
+  Face #1  top-5:
+    1. 0.5341  susan.doniz@disney.com  
+    2. 0.2695  nikhil.kolar@microsoft.com  
+    3. 0.1527  cristiano.amon@qualcomm.com  
+    4. 0.1431  lauri.palmieri@salesforce.com  
+    5. 0.1020  matthew.pankey@fortune.com  
+  Face #2  top-5:
+    1. 0.3233  susan.doniz@disney.com  
+    2. 0.2063  linda.kenney@jpmorgan.com  
+    3. 0.0992  allie.garfinkle@fortune.com  
+    4. 0.0973  nikhil.kolar@microsoft.com  
+    5. 0.0970  matthew.pankey@fortune.com  
+
+--- 98c1d53e-8038-4c00-9ea0-da9f10ce89ad.jpg  (3 face(s), 1.28s) ---
+  Face #1  top-5:
+    1. 0.6360  lauri.palmieri@salesforce.com  
+    2. 0.3429  susan.doniz@disney.com  
+    3. 0.2230  matthew.pankey@fortune.com  
+    4. 0.1567  courtney.keating@acxiom.com  
+    5. 0.1561  jodawn.whitlock@gls-us.com  
+  Face #2  top-5:
+    1. 0.3666  susan.doniz@disney.com  
+    2. 0.1479  linda.kenney@jpmorgan.com  
+    3. 0.0735  sean.muzzy@acxiom.com  
+    4. 0.0640  allie.garfinkle@fortune.com  
+    5. 0.0580  pankaj.kedia@2468ventures.com  
+  Face #3  top-5:
+    1. 0.3586  susan.doniz@disney.com  
+    2. 0.1881  matthew.pankey@fortune.com  
+    3. 0.1718  linda.kenney@jpmorgan.com  
+    4. 0.1597  nikhil.kolar@microsoft.com  
+    5. 0.1520  bill.briggs@deloitte.com  
+
+--- a4598cd0-5490-45e5-8460-3fa10234a50f.jpg  (2 face(s), 1.41s) ---
+  Face #1  top-5:
+    1. 0.3887  susan.doniz@disney.com  
+    2. 0.2224  linda.kenney@jpmorgan.com  
+    3. 0.2206  nikhil.kolar@microsoft.com  
+    4. 0.2197  cristiano.amon@qualcomm.com  
+    5. 0.1704  allie.garfinkle@fortune.com  
+  Face #2  top-5:
+    1. 0.5798  susan.doniz@disney.com  
+    2. 0.3201  zeev.klein@landmarkventures.com  
+    3. 0.2740  cristiano.amon@qualcomm.com  
+    4. 0.2532  nikhil.kolar@microsoft.com  
+    5. 0.1848  linda.kenney@jpmorgan.com  
+
+--- a5180073-7699-42eb-8c3b-921239147ff6.jpg  (2 face(s), 1.61s) ---
+  Face #1  top-5:
+    1. 0.3308  jodawn.whitlock@gls-us.com  
+    2. 0.2598  allie.garfinkle@fortune.com  
+    3. 0.2142  susan.doniz@disney.com  
+    4. 0.2139  courtney.keating@acxiom.com  
+    5. 0.2049  melissa.mathews@lmco.com  
+  Face #2  top-5:
+    1. 0.5306  susan.doniz@disney.com  
+    2. 0.2805  zeev.klein@landmarkventures.com  
+    3. 0.1501  cristiano.amon@qualcomm.com  
+    4. 0.1229  sean.muzzy@acxiom.com  
+    5. 0.1010  pankaj.kedia@2468ventures.com  
+
+--- a7cb1c91-4d58-455f-9d64-f9027cb3ca3d.jpg  (4 face(s), 1.71s) ---
+  Face #1  top-5:
+    1. 0.5809  susan.doniz@disney.com  
+    2. 0.2060  cristiano.amon@qualcomm.com  
+    3. 0.1849  linda.kenney@jpmorgan.com  
+    4. 0.1718  allie.garfinkle@fortune.com  
+    5. 0.1473  nikhil.kolar@microsoft.com  
+  Face #2  top-5:
+    1. 0.4799  susan.doniz@disney.com  
+    2. 0.2290  linda.kenney@jpmorgan.com  
+    3. 0.1692  allie.garfinkle@fortune.com  
+    4. 0.1589  zeev.klein@landmarkventures.com  
+    5. 0.1439  cristiano.amon@qualcomm.com  
+  Face #3  top-5:
+    1. 0.2121  linda.kenney@jpmorgan.com  
+    2. 0.1334  susan.doniz@disney.com  
+    3. 0.0906  allie.garfinkle@fortune.com  
+    4. 0.0743  sean.muzzy@acxiom.com  
+    5. 0.0736  hari.bala@solventum.com  
+  Face #4  top-5:
+    1. 0.4689  susan.doniz@disney.com  
+    2. 0.1981  nikhil.kolar@microsoft.com  
+    3. 0.1792  allie.garfinkle@fortune.com  
+    4. 0.1709  zeev.klein@landmarkventures.com  
+    5. 0.1696  linda.kenney@jpmorgan.com  
+
+--- a8b48156-cedf-4d74-9fa5-10407a5baa3e.jpg  (4 face(s), 1.63s) ---
+  Face #1  top-5:
+    1. 0.1841  zeev.klein@landmarkventures.com  
+    2. 0.1568  hari.bala@solventum.com  
+    3. 0.1565  sagar.mehta@opentable.com  
+    4. 0.1517  nikhil.kolar@microsoft.com  
+    5. 0.0879  susan.doniz@disney.com  
+  Face #2  top-5:
+    1. 0.2208  pankaj.kedia@2468ventures.com  
+    2. 0.1283  susan.doniz@disney.com  
+    3. 0.0968  linda.kenney@jpmorgan.com  
+    4. 0.0845  jodawn.whitlock@gls-us.com  
+    5. 0.0832  hari.bala@solventum.com  
+  Face #3  top-5:
+    1. 0.5727  susan.doniz@disney.com  
+    2. 0.1960  linda.kenney@jpmorgan.com  
+    3. 0.0997  pankaj.kedia@2468ventures.com  
+    4. 0.0969  zeev.klein@landmarkventures.com  
+    5. 0.0420  allie.garfinkle@fortune.com  
+  Face #4  top-5:
+    1. 0.5694  susan.doniz@disney.com  
+    2. 0.2611  nikhil.kolar@microsoft.com  
+    3. 0.1797  cristiano.amon@qualcomm.com  
+    4. 0.1598  matthew.pankey@fortune.com  
+    5. 0.1388  sean.muzzy@acxiom.com  
+
+--- a977b13b-371b-4abc-a6b4-df5a41048bab.jpg  (2 face(s), 1.32s) ---
+  Face #1  top-5:
+    1. 0.4833  susan.doniz@disney.com  
+    2. 0.2517  nikhil.kolar@microsoft.com  
+    3. 0.1567  cristiano.amon@qualcomm.com  
+    4. 0.1205  allie.garfinkle@fortune.com  
+    5. 0.0711  linda.kenney@jpmorgan.com  
+  Face #2  top-5:
+    1. 0.3495  susan.doniz@disney.com  
+    2. 0.3163  lauri.palmieri@salesforce.com  
+    3. 0.3021  pankaj.kedia@2468ventures.com  
+    4. 0.2402  linda.kenney@jpmorgan.com  
+    5. 0.2117  sagar.mehta@opentable.com  
+
+--- ad694ee6-49e1-4be1-a1b8-a0bc1a3b5d86.jpg  (1 face(s), 1.35s) ---
+  Face #1  top-5:
+    1. 0.4904  susan.doniz@disney.com  
+    2. 0.2382  lauri.palmieri@salesforce.com  
+    3. 0.1920  linda.kenney@jpmorgan.com  
+    4. 0.1177  allie.garfinkle@fortune.com  
+    5. 0.0440  hari.bala@solventum.com  
+
+--- adda7ae7-6da3-4704-9d86-5d424a659b7d.jpg  (1 face(s), 1.24s) ---
+  Face #1  top-5:
+    1. 0.3172  susan.doniz@disney.com  
+    2. 0.2465  nikhil.kolar@microsoft.com  
+    3. 0.1878  linda.kenney@jpmorgan.com  
+    4. 0.1724  hari.bala@solventum.com  
+    5. 0.1121  zeev.klein@landmarkventures.com  
+
+--- b11b6bc0-aeda-4195-9c48-6d169d41b733.jpg  (1 face(s), 1.34s) ---
+  Face #1  top-5:
+    1. 0.1893  linda.kenney@jpmorgan.com  
+    2. 0.1698  pankaj.kedia@2468ventures.com  
+    3. 0.1523  hari.bala@solventum.com  
+    4. 0.1495  susan.doniz@disney.com  
+    5. 0.1089  nikhil.kolar@microsoft.com  
+
+--- b5b9b7f0-216a-4abc-8c52-400d42c59f36.jpg  (1 face(s), 1.31s) ---
+  Face #1  top-5:
+    1. 0.4337  susan.doniz@disney.com  
+    2. 0.1924  allie.garfinkle@fortune.com  
+    3. 0.1638  cristiano.amon@qualcomm.com  
+    4. 0.1379  linda.kenney@jpmorgan.com  
+    5. 0.1320  nikhil.kolar@microsoft.com  
+
+--- ba2590be-7f44-43c7-8dde-bc5f7aeba126.jpg  (1 face(s), 1.41s) ---
+  Face #1  top-5:
+    1. 0.2110  linda.kenney@jpmorgan.com  
+    2. 0.1079  bill.briggs@deloitte.com  
+    3. 0.1023  nikhil.kolar@microsoft.com  
+    4. 0.1009  allie.garfinkle@fortune.com  
+    5. 0.0968  pankaj.kedia@2468ventures.com  
+
+--- bd1a64f7-aaea-46f3-a4bb-45fc3960f12f.jpg  (1 face(s), 1.43s) ---
+  Face #1  top-5:
+    1. 0.4120  jodawn.whitlock@gls-us.com  
+    2. 0.1786  allie.garfinkle@fortune.com  
+    3. 0.1524  susan.doniz@disney.com  
+    4. 0.1508  lauri.palmieri@salesforce.com  
+    5. 0.1464  linda.kenney@jpmorgan.com  
+
+--- bf16cfe5-0ee6-4b92-b9fd-78bd3356105b.jpg  (4 face(s), 1.49s) ---
+  Face #1  top-5:
+    1. 0.5034  susan.doniz@disney.com  
+    2. 0.1946  linda.kenney@jpmorgan.com  
+    3. 0.1267  zeev.klein@landmarkventures.com  
+    4. 0.1004  lauri.palmieri@salesforce.com  
+    5. 0.0896  pankaj.kedia@2468ventures.com  
+  Face #2  top-5:
+    1. 0.2243  linda.kenney@jpmorgan.com  
+    2. 0.2039  matthew.pankey@fortune.com  
+    3. 0.1988  sean.muzzy@acxiom.com  
+    4. 0.1827  susan.doniz@disney.com  
+    5. 0.1299  cristiano.amon@qualcomm.com  
+  Face #3  top-5:
+    1. 0.1809  linda.kenney@jpmorgan.com  
+    2. 0.1770  nikhil.kolar@microsoft.com  
+    3. 0.1556  hari.bala@solventum.com  
+    4. 0.0582  zeev.klein@landmarkventures.com  
+    5. 0.0552  pankaj.kedia@2468ventures.com  
+  Face #4  top-5:
+    1. 0.3704  susan.doniz@disney.com  
+    2. 0.1541  allie.garfinkle@fortune.com  
+    3. 0.1416  linda.kenney@jpmorgan.com  
+    4. 0.1035  zeev.klein@landmarkventures.com  
+    5. 0.0653  pankaj.kedia@2468ventures.com  
+
+--- bf9cd3e7-1445-4eda-8b60-07ecc2110930.jpg  (2 face(s), 1.45s) ---
+  Face #1  top-5:
+    1. 0.2220  hari.bala@solventum.com  
+    2. 0.2053  matthew.pankey@fortune.com  
+    3. 0.1985  linda.kenney@jpmorgan.com  
+    4. 0.1895  andrew.nusca@fortune.com  
+    5. 0.1624  cristiano.amon@qualcomm.com  
+  Face #2  top-5:
+    1. 0.3406  allie.garfinkle@fortune.com  
+    2. 0.3035  susan.doniz@disney.com  
+    3. 0.1380  pankaj.kedia@2468ventures.com  
+    4. 0.1117  linda.kenney@jpmorgan.com  
+    5. 0.1022  cristiano.amon@qualcomm.com  
+
+--- bfcb6564-7d7e-45e5-8e3c-44b019895f53.jpg  (1 face(s), 1.33s) ---
+  Face #1  top-5:
+    1. 0.4748  susan.doniz@disney.com  
+    2. 0.2841  nikhil.kolar@microsoft.com  
+    3. 0.0930  sean.muzzy@acxiom.com  
+    4. 0.0889  courtney.keating@acxiom.com  
+    5. 0.0737  hari.bala@solventum.com  
+
+--- c50dfd75-e8d2-4427-a2be-2f85d2f80fa9.jpg  (3 face(s), 1.28s) ---
+  Face #1  top-5:
+    1. 0.2303  susan.doniz@disney.com  
+    2. 0.1353  andrew.nusca@fortune.com  
+    3. 0.1340  nikhil.kolar@microsoft.com  
+    4. 0.0724  lauri.palmieri@salesforce.com  
+    5. 0.0636  matthew.pankey@fortune.com  
+  Face #2  top-5:
+    1. 0.5517  susan.doniz@disney.com  
+    2. 0.2376  nikhil.kolar@microsoft.com  
+    3. 0.1833  cristiano.amon@qualcomm.com  
+    4. 0.1657  lauri.palmieri@salesforce.com  
+    5. 0.1565  linda.kenney@jpmorgan.com  
+  Face #3  top-5:
+    1. 0.4620  susan.doniz@disney.com  
+    2. 0.2200  nikhil.kolar@microsoft.com  
+    3. 0.1465  cristiano.amon@qualcomm.com  
+    4. 0.1394  linda.kenney@jpmorgan.com  
+    5. 0.0902  sean.muzzy@acxiom.com  
+
+--- c96e8312-e391-4d72-a0aa-6ada2d0b0dc0.jpg  (3 face(s), 1.19s) ---
+  Face #1  top-5:
+    1. 0.4351  susan.doniz@disney.com  
+    2. 0.2313  zeev.klein@landmarkventures.com  
+    3. 0.1584  linda.kenney@jpmorgan.com  
+    4. 0.1541  cristiano.amon@qualcomm.com  
+    5. 0.1537  pankaj.kedia@2468ventures.com  
+  Face #2  top-5:
+    1. 0.4550  susan.doniz@disney.com  
+    2. 0.1803  allie.garfinkle@fortune.com  
+    3. 0.1781  nikhil.kolar@microsoft.com  
+    4. 0.1772  linda.kenney@jpmorgan.com  
+    5. 0.1509  zeev.klein@landmarkventures.com  
+  Face #3  top-5:
+    1. 0.2529  susan.doniz@disney.com  
+    2. 0.1668  nikhil.kolar@microsoft.com  
+    3. 0.1554  linda.kenney@jpmorgan.com  
+    4. 0.1529  pankaj.kedia@2468ventures.com  
+    5. 0.1150  cristiano.amon@qualcomm.com  
+
+--- cbe9cdba-7599-4ea2-b878-c8703e1a0164.jpg  (4 face(s), 1.24s) ---
+  Face #1  top-5:
+    1. 0.6992  susan.doniz@disney.com  
+    2. 0.2328  nikhil.kolar@microsoft.com  
+    3. 0.1802  cristiano.amon@qualcomm.com  
+    4. 0.1395  lauri.palmieri@salesforce.com  
+    5. 0.1384  andrew.nusca@fortune.com  
+  Face #2  top-5:
+    1. 0.5714  susan.doniz@disney.com  
+    2. 0.3061  cristiano.amon@qualcomm.com  
+    3. 0.2199  matthew.pankey@fortune.com  
+    4. 0.1991  nikhil.kolar@microsoft.com  
+    5. 0.1956  sean.muzzy@acxiom.com  
+  Face #3  top-5:
+    1. 0.6478  susan.doniz@disney.com  
+    2. 0.2667  nikhil.kolar@microsoft.com  
+    3. 0.1129  courtney.keating@acxiom.com  
+    4. 0.0572  linda.kenney@jpmorgan.com  
+    5. 0.0530  hari.bala@solventum.com  
+  Face #4  top-5:
+    1. 0.7110  susan.doniz@disney.com  ✓ MATCH
+    2. 0.1089  courtney.keating@acxiom.com  
+    3. 0.0997  nikhil.kolar@microsoft.com  
+    4. 0.0723  cristiano.amon@qualcomm.com  
+    5. 0.0665  linda.kenney@jpmorgan.com  
+
+--- cf34f4d4-4ad2-4463-8dac-f75e9f1d4c41.jpg  (3 face(s), 1.33s) ---
+  Face #1  top-5:
+    1. 0.4649  susan.doniz@disney.com  
+    2. 0.2607  nikhil.kolar@microsoft.com  
+    3. 0.1915  zeev.klein@landmarkventures.com  
+    4. 0.1716  linda.kenney@jpmorgan.com  
+    5. 0.1547  hari.bala@solventum.com  
+  Face #2  top-5:
+    1. 0.4887  susan.doniz@disney.com  
+    2. 0.2870  nikhil.kolar@microsoft.com  
+    3. 0.2456  zeev.klein@landmarkventures.com  
+    4. 0.2217  cristiano.amon@qualcomm.com  
+    5. 0.2077  linda.kenney@jpmorgan.com  
+  Face #3  top-5:
+    1. 0.4255  hari.bala@solventum.com  
+    2. 0.1709  sagar.mehta@opentable.com  
+    3. 0.1655  andrew.nusca@fortune.com  
+    4. 0.1255  linda.kenney@jpmorgan.com  
+    5. 0.1172  nikhil.kolar@microsoft.com  
+
+--- d4b49073-22bd-4179-8c42-c83dd73fccbb.jpg  (1 face(s), 1.35s) ---
+  Face #1  top-5:
+    1. 0.3344  susan.doniz@disney.com  
+    2. 0.2507  matthew.pankey@fortune.com  
+    3. 0.2445  sean.muzzy@acxiom.com  
+    4. 0.2427  nikhil.kolar@microsoft.com  
+    5. 0.1892  hari.bala@solventum.com  
+
+--- dc9897d6-b055-4f7d-987b-70a518da1e95.jpg  (1 face(s), 1.42s) ---
+  Face #1  top-5:
+    1. 0.4562  susan.doniz@disney.com  
+    2. 0.2584  cristiano.amon@qualcomm.com  
+    3. 0.2450  nikhil.kolar@microsoft.com  
+    4. 0.1783  linda.kenney@jpmorgan.com  
+    5. 0.1757  lauri.palmieri@salesforce.com  
+
+--- df1d574f-a9ce-483a-948e-3937ccf5d30e.jpg  (2 face(s), 1.39s) ---
+  Face #1  top-5:
+    1. 0.5476  susan.doniz@disney.com  
+    2. 0.2958  zeev.klein@landmarkventures.com  
+    3. 0.2494  cristiano.amon@qualcomm.com  
+    4. 0.2445  nikhil.kolar@microsoft.com  
+    5. 0.1968  linda.kenney@jpmorgan.com  
+  Face #2  top-5:
+    1. 0.4101  susan.doniz@disney.com  
+    2. 0.1733  sean.muzzy@acxiom.com  
+    3. 0.1110  pankaj.kedia@2468ventures.com  
+    4. 0.0878  linda.kenney@jpmorgan.com  
+    5. 0.0848  allie.garfinkle@fortune.com  
+
+--- e10ce538-9e08-4cd9-b8ab-afbe81a9d0cb.jpg  (1 face(s), 1.34s) ---
+  Face #1  top-5:
+    1. 0.3623  susan.doniz@disney.com  
+    2. 0.2557  zeev.klein@landmarkventures.com  
+    3. 0.2109  cristiano.amon@qualcomm.com  
+    4. 0.1846  nikhil.kolar@microsoft.com  
+    5. 0.1833  linda.kenney@jpmorgan.com  
+
+--- e1e16bab-1df8-4741-9676-4258ef86c46b.jpg  (1 face(s), 1.21s) ---
+  Face #1  top-5:
+    1. 0.1712  susan.doniz@disney.com  
+    2. 0.1124  lauri.palmieri@salesforce.com  
+    3. 0.1009  hari.bala@solventum.com  
+    4. 0.0984  linda.kenney@jpmorgan.com  
+    5. 0.0200  jodawn.whitlock@gls-us.com  
+
+--- e2a5052c-099b-4c73-b53d-70a73a1b431a.jpg  (1 face(s), 1.10s) ---
+  Face #1  top-5:
+    1. 0.3877  susan.doniz@disney.com  
+    2. 0.2307  nikhil.kolar@microsoft.com  
+    3. 0.2107  matthew.pankey@fortune.com  
+    4. 0.1937  linda.kenney@jpmorgan.com  
+    5. 0.1408  cristiano.amon@qualcomm.com  
+
+--- e7180e98-3406-4cef-bd13-1033ad75f594.jpg  (1 face(s), 1.11s) ---
+  Face #1  top-5:
+    1. 0.2941  susan.doniz@disney.com  
+    2. 0.1751  cristiano.amon@qualcomm.com  
+    3. 0.1736  linda.kenney@jpmorgan.com  
+    4. 0.1577  nikhil.kolar@microsoft.com  
+    5. 0.1442  sean.muzzy@acxiom.com  
+
+--- ea3c1daa-a37e-4296-bb88-522c5ffa4a1f.jpg  (1 face(s), 1.15s) ---
+  Face #1  top-5:
+    1. 0.1739  susan.doniz@disney.com  
+    2. 0.1250  linda.kenney@jpmorgan.com  
+    3. 0.0747  allie.garfinkle@fortune.com  
+    4. 0.0741  pankaj.kedia@2468ventures.com  
+    5. 0.0735  zeev.klein@landmarkventures.com  
+
+--- ea812095-88a3-4e40-9627-54e7f88627e2.jpg  (1 face(s), 1.19s) ---
+  Face #1  top-5:
+    1. 0.6574  susan.doniz@disney.com  
+    2. 0.1972  cristiano.amon@qualcomm.com  
+    3. 0.1534  sean.muzzy@acxiom.com  
+    4. 0.1260  nikhil.kolar@microsoft.com  
+    5. 0.1187  linda.kenney@jpmorgan.com  
+
+--- eb752722-be72-47c6-8a17-92da7d72baf8.jpg  (1 face(s), 1.28s) ---
+  Face #1  top-5:
+    1. 0.6999  susan.doniz@disney.com  
+    2. 0.1914  matthew.pankey@fortune.com  
+    3. 0.1798  cristiano.amon@qualcomm.com  
+    4. 0.1772  lauri.palmieri@salesforce.com  
+    5. 0.1403  nikhil.kolar@microsoft.com  
+
+--- ec09a439-830f-4bf9-a65e-6e012b21eee2.jpg  (1 face(s), 1.30s) ---
+  Face #1  top-5:
+    1. 0.4180  susan.doniz@disney.com  
+    2. 0.3215  nikhil.kolar@microsoft.com  
+    3. 0.1721  zeev.klein@landmarkventures.com  
+    4. 0.1649  linda.kenney@jpmorgan.com  
+    5. 0.1391  hari.bala@solventum.com  
+
+--- eea6aa0b-b67e-4fb6-bfdc-18d5101df1f8.jpg  (2 face(s), 1.35s) ---
+  Face #1  top-5:
+    1. 0.4215  susan.doniz@disney.com  
+    2. 0.3204  nikhil.kolar@microsoft.com  
+    3. 0.1472  linda.kenney@jpmorgan.com  
+    4. 0.1455  matthew.pankey@fortune.com  
+    5. 0.1254  cristiano.amon@qualcomm.com  
+  Face #2  top-5:
+    1. 0.4947  susan.doniz@disney.com  
+    2. 0.1923  nikhil.kolar@microsoft.com  
+    3. 0.1554  cristiano.amon@qualcomm.com  
+    4. 0.1361  linda.kenney@jpmorgan.com  
+    5. 0.1123  zeev.klein@landmarkventures.com  
+
+--- ef38aeb3-da84-4584-95a9-07b6b12e1d33.jpg  (1 face(s), 1.32s) ---
+  Face #1  top-5:
+    1. 0.6884  lauri.palmieri@salesforce.com  
+    2. 0.4065  jodawn.whitlock@gls-us.com  
+    3. 0.2292  linda.kenney@jpmorgan.com  
+    4. 0.1897  melissa.mathews@lmco.com  
+    5. 0.1641  sean.muzzy@acxiom.com  
+
+--- f0e8b98d-484f-45b9-b963-4683f3f904f7.jpg  (1 face(s), 1.43s) ---
+  Face #1  top-5:
+    1. 0.5021  susan.doniz@disney.com  
+    2. 0.2154  nikhil.kolar@microsoft.com  
+    3. 0.1301  matthew.pankey@fortune.com  
+    4. 0.0880  allie.garfinkle@fortune.com  
+    5. 0.0839  cristiano.amon@qualcomm.com  
+
+--- f275d156-2613-4b69-96de-fecb9a5d0bc3.jpg  (1 face(s), 1.43s) ---
+  Face #1  top-5:
+    1. 0.7592  susan.doniz@disney.com  ✓ MATCH
+    2. 0.1274  allie.garfinkle@fortune.com  
+    3. 0.1248  andrew.nusca@fortune.com  
+    4. 0.1164  cristiano.amon@qualcomm.com  
+    5. 0.1044  linda.kenney@jpmorgan.com  
+
+--- fb966c19-8d83-426a-a54c-6c7a8cd9eb19.jpg  (1 face(s), 1.58s) ---
+  Face #1  top-5:
+    1. 0.2634  melissa.mathews@lmco.com  
+    2. 0.2257  allie.garfinkle@fortune.com  
+    3. 0.1779  bill.briggs@deloitte.com  
+    4. 0.1497  linda.kenney@jpmorgan.com  
+    5. 0.1496  andrew.nusca@fortune.com  
+======================================================================
+SUMMARY: 99 photos in 37.6s → 5 person(s) matched
+  susan.doniz@disney.com: 6 photo(s)
+  allie.garfinkle@fortune.com: 1 photo(s)
+  lauri.palmieri@salesforce.com: 1 photo(s)
+  bill.briggs@deloitte.com: 1 photo(s)
+  hari.bala@solventum.com: 1 photo(s)
