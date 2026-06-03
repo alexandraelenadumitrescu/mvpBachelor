@@ -1,6 +1,5 @@
 import os
 import tempfile
-from concurrent.futures import ThreadPoolExecutor
 
 import requests
 import numpy as np
@@ -11,13 +10,12 @@ from photo_mailer import tflite_embedder
 
 def build_db(employees: list[dict]) -> dict[str, np.ndarray]:
     """
-    Download each employee photo, detect face with RetinaFace,
+    Download each employee photo, detect face with OpenCV,
     embed with FaceNet TFLite — same model as Android.
-    Downloads run in parallel; TFLite inference is serialized via lock in tflite_embedder.
+    Sequential: DeepFace is not thread-safe.
     """
     db = {}
-
-    def _process(emp):
+    for emp in employees:
         name, email, url = emp["name"], emp["email"], emp["photo_url"]
         print(f"  Processing {name} ({email})...")
         try:
@@ -34,20 +32,14 @@ def build_db(employees: list[dict]) -> dict[str, np.ndarray]:
                 )
                 if not faces:
                     print(f"    ✗ no face detected for {name}")
-                    return None, None
+                    continue
                 face_arr = faces[0]["face"]
                 face_img = Image.fromarray((face_arr * 255).astype(np.uint8))
                 embedding = tflite_embedder.embed(face_img)
+                db[email] = embedding
                 print(f"    ✓ {name}: {len(embedding)} dims")
-                return email, embedding
             finally:
                 os.unlink(tmp_path)
         except Exception as exc:
             print(f"    ✗ {name} skipped: {exc}")
-            return None, None
-
-    with ThreadPoolExecutor(max_workers=4) as pool:
-        for email, emb in pool.map(_process, employees):
-            if email is not None:
-                db[email] = emb
     return db
