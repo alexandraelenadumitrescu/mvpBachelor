@@ -43,18 +43,11 @@ def match_photos(
             faces = DeepFace.extract_faces(
                 img_path=photo_path,
                 enforce_detection=False,
-                detector_backend="retinaface",
+                detector_backend="opencv",
             )
-        except Exception:
-            try:
-                faces = DeepFace.extract_faces(
-                    img_path=photo_path,
-                    enforce_detection=False,
-                    detector_backend="ssd",
-                )
-            except Exception as exc:
-                print(f"  [matcher] ✗ {name} skipped: {exc}")
-                return local
+        except Exception as exc:
+            print(f"  [matcher] ✗ {name} skipped: {exc}")
+            return local
 
         t_detect = time.perf_counter()
         print(f"  [matcher] {name}: {len(faces)} face(s) in {t_detect - t0:.2f}s")

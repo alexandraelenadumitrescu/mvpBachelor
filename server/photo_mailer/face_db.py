@@ -30,7 +30,7 @@ def build_db(employees: list[dict]) -> dict[str, np.ndarray]:
                 faces = DeepFace.extract_faces(
                     img_path=tmp_path,
                     enforce_detection=False,
-                    detector_backend="retinaface",
+                    detector_backend="opencv",
                 )
                 if not faces:
                     print(f"    ✗ no face detected for {name}")
