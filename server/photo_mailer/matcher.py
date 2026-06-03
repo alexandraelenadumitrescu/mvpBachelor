@@ -1,8 +1,7 @@
 import os
+
 import numpy as np
-from PIL import Image
 from deepface import DeepFace
-from photo_mailer import tflite_embedder
 
 SUPPORTED_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 THRESHOLD = 0.10
@@ -10,11 +9,11 @@ THRESHOLD = 0.10
 
 def match_photos(
     photos_dir: str,
-    db: dict[str, np.ndarray],
+    db: dict[str, list[float]],
     threshold: float = THRESHOLD,
 ) -> dict[str, list[str]]:
     """
-    Detect faces in each event photo, embed with FaceNet TFLite, match against DB.
+    Detect faces in each event photo with DeepFace Facenet, match against DB.
     Returns {email: [photo_paths]} for every employee with at least one match.
     """
     results: dict[str, list[str]] = {}
@@ -24,21 +23,24 @@ def match_photos(
         if os.path.splitext(f)[1].lower() in SUPPORTED_EXTENSIONS
     ]
 
+    if not photo_files:
+        print(f"No images found in {photos_dir}")
+        return results
+
     for photo_path in photo_files:
         print(f"  Scanning {os.path.basename(photo_path)}...")
         try:
-            faces = DeepFace.extract_faces(
+            faces = DeepFace.represent(
                 img_path=photo_path,
+                model_name="Facenet",
                 enforce_detection=False,
-                detector_backend="opencv",
             )
         except Exception as exc:
             print(f"    ✗ skipped: {exc}")
             continue
 
         for face in faces:
-            face_img = Image.fromarray((face["face"] * 255).astype(np.uint8))
-            embedding = tflite_embedder.embed(face_img)
+            embedding = face["embedding"]
             best_email, best_sim = _best_match(embedding, db)
             print(f"    best match: {best_email} (sim={best_sim:.3f}, threshold={threshold})")
             if best_sim >= threshold:
@@ -50,10 +52,21 @@ def match_photos(
     return results
 
 
-def _best_match(embedding: np.ndarray, db: dict[str, np.ndarray]) -> tuple[str, float]:
-    best_email, best_sim = "", -1.0
+def _best_match(
+    embedding: list[float],
+    db: dict[str, list[float]],
+) -> tuple[str, float]:
+    best_email = ""
+    best_sim   = -1.0
     for email, db_emb in db.items():
-        sim = float(np.dot(embedding, db_emb))
+        sim = _cosine_sim(embedding, db_emb)
         if sim > best_sim:
-            best_sim, best_email = sim, email
+            best_sim   = sim
+            best_email = email
     return best_email, best_sim
+
+
+def _cosine_sim(a: list[float], b: list[float]) -> float:
+    a, b = np.array(a), np.array(b)
+    denom = np.linalg.norm(a) * np.linalg.norm(b)
+    return float(np.dot(a, b) / denom) if denom > 0 else 0.0
