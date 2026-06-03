@@ -164,6 +164,12 @@ if _search_ready:
 # Set this event to pause background precomputation threads during CPU/IO-heavy operations
 _bg_pause = threading.Event()  # set = pause, clear = run
 
+# Per-URL caches — avoids re-scraping + re-embedding on repeated delivery calls
+# Two separate caches because TFLite and Facenet embeddings are in different spaces
+_employees_cache:  dict[str, tuple] = {}  # url -> (employees_list, name_by_email)
+_face_db_tflite:   dict[str, dict]  = {}  # url -> {email: tflite_embedding}
+_face_db_facenet:  dict[str, dict]  = {}  # url -> {email: facenet_embedding}
+
 lut_cache:     dict = {}  # basename -> np.ndarray shape (LUT_SIZE, LUT_SIZE, LUT_SIZE, 3)
 style_profiles: dict = {}  # session_id -> np.ndarray shape (N, 517) weighted-normalized
 
@@ -1325,18 +1331,24 @@ async def delivery_match_embeddings(
     current_user = Depends(get_current_active_user),
 ):
     """Phase 1: receive on-device embeddings, scrape employee DB, return matches."""
-    try:
-        employees = _scrape(request.employees_url)
-    except Exception as e:
-        raise HTTPException(500, f"Scrape failed: {e}")
-    if not employees:
-        raise HTTPException(400, f"No employees found at {request.employees_url}")
+    url = request.employees_url
+    if url not in _employees_cache:
+        try:
+            employees = _scrape(url)
+        except Exception as e:
+            raise HTTPException(500, f"Scrape failed: {e}")
+        if not employees:
+            raise HTTPException(400, f"No employees found at {url}")
+        _employees_cache[url] = (employees, {e["email"]: e.get("name", "") for e in employees})
+    employees, name_by_email = _employees_cache[url]
 
-    db = _build_db(employees)
-    if not db:
-        raise HTTPException(500, "Face DB build failed")
-
-    name_by_email = {e["email"]: e.get("name", "") for e in employees}
+    if url not in _face_db_tflite:
+        db = _build_db(employees)
+        if not db:
+            raise HTTPException(500, "Face DB build failed")
+        _face_db_tflite[url] = db
+    db = _face_db_tflite[url]
+    print(f"[match-emb] db={len(db)} employees, photos={len(request.photos)}")
     print(f"[match-emb] db={len(db)} employees, photos={len(request.photos)}")
 
     matches: list[PhotoMatchItem] = []
@@ -1450,20 +1462,29 @@ async def _delivery_run_impl(employees_url, photos, current_user):
     if not smtp_user or not smtp_pass:
         raise HTTPException(500, "SMTP_USER and SMTP_PASSWORD environment variables must be set")
 
-    try:
-        employees = _scrape(employees_url)
-    except Exception as e:
-        print(f"[delivery/run] _scrape failed: {e}\n{_tb.format_exc()}")
-        raise HTTPException(500, f"Scrape failed: {e}")
-    print(f"[delivery/run] scraped {len(employees)} employees")
-    if not employees:
-        raise HTTPException(400, f"No employees found at {employees_url}")
+    if employees_url not in _employees_cache:
+        try:
+            employees = _scrape(employees_url)
+        except Exception as e:
+            print(f"[delivery/run] _scrape failed: {e}\n{_tb.format_exc()}")
+            raise HTTPException(500, f"Scrape failed: {e}")
+        print(f"[delivery/run] scraped {len(employees)} employees")
+        if not employees:
+            raise HTTPException(400, f"No employees found at {employees_url}")
+        _employees_cache[employees_url] = (employees, {e["email"]: e.get("name", "") for e in employees})
+    employees, _ = _employees_cache[employees_url]
 
-    try:
-        db = _build_db_facenet(employees)
-    except Exception as e:
-        print(f"[delivery/run] _build_db_facenet failed: {e}\n{_tb.format_exc()}")
-        raise HTTPException(500, f"Build DB failed: {e}")
+    if employees_url not in _face_db_facenet:
+        try:
+            db = _build_db_facenet(employees)
+        except Exception as e:
+            print(f"[delivery/run] _build_db_facenet failed: {e}\n{_tb.format_exc()}")
+            raise HTTPException(500, f"Build DB failed: {e}")
+        _face_db_facenet[employees_url] = db
+        print(f"[delivery/run] face DB built and cached ({len(db)} entries)")
+    else:
+        print(f"[delivery/run] face DB from cache ({len(_face_db_facenet[employees_url])} entries)")
+    db = _face_db_facenet[employees_url]
     print(f"[delivery/run] db built, {len(db)} entries")
     if not db:
         raise HTTPException(500, "Face DB build failed — no embeddings extracted")
@@ -1484,8 +1505,8 @@ async def _delivery_run_impl(employees_url, photos, current_user):
         matches = _match_photos(tmp_dir, db)
         matched = sum(len(paths) for paths in matches.values())
 
-        name_by_email  = {e["email"]: e.get("name", "") for e in employees}
-        demo_recipient = "alexandradumitrescu04@gmail.com"
+        _, name_by_email = _employees_cache[employees_url]
+        demo_recipient  = "alexandradumitrescu04@gmail.com"
 
         for to_email, photo_paths in matches.items():
             try:
