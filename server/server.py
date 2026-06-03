@@ -271,6 +271,20 @@ threading.Thread(target=_precompute_aesthetic_scores, daemon=True).start()
 print("Aesthetic pre-computation started in background")
 
 
+def _warmup_deepface():
+    try:
+        from deepface import DeepFace as _DF
+        import numpy as _np
+        print("Warming up DeepFace Facenet...")
+        dummy = _np.zeros((160, 160, 3), dtype=_np.uint8)
+        _DF.represent(dummy, model_name="Facenet", enforce_detection=False)
+        print("✅ DeepFace Facenet warmed up")
+    except Exception as e:
+        print(f"  DeepFace warmup warning: {e}")
+
+threading.Thread(target=_warmup_deepface, daemon=True).start()
+
+
 def _auto_k(X: np.ndarray, max_k: int = 8) -> int:
     """Elbow method: pick k where marginal inertia drop is <20% of total drop."""
     n = len(X)
@@ -1497,10 +1511,13 @@ async def _delivery_run_impl(employees_url, photos, current_user):
     with tempfile.TemporaryDirectory() as tmp_dir:
         for photo in photos:
             data  = await photo.read()
-            ext   = os.path.splitext(photo.filename or "")[1] or ".jpg"
-            fname = f"{uuid.uuid4()}{ext}"
-            with open(os.path.join(tmp_dir, fname), "wb") as fh:
-                fh.write(data)
+            fname = f"{uuid.uuid4()}.jpg"
+            pil   = Image.open(BytesIO(data)).convert("RGB")
+            w, h  = pil.size
+            scale = min(1920 / max(w, h), 1.0)
+            if scale < 1.0:
+                pil = pil.resize((int(w * scale), int(h * scale)), Image.BILINEAR)
+            pil.save(os.path.join(tmp_dir, fname), "JPEG", quality=92)
 
         matches = _match_photos(tmp_dir, db)
         matched = sum(len(paths) for paths in matches.values())
@@ -1508,33 +1525,41 @@ async def _delivery_run_impl(employees_url, photos, current_user):
         _, name_by_email = _employees_cache[employees_url]
         demo_recipient  = "alexandradumitrescu04@gmail.com"
 
-        for to_email, photo_paths in matches.items():
-            try:
-                person_name = name_by_email.get(to_email, "")
-                subject     = f"{person_name} — {to_email}" if person_name else to_email
-                msg = MIMEMultipart()
-                msg["From"]    = smtp_user
-                msg["To"]      = demo_recipient
-                msg["Subject"] = subject
-                msg.attach(MIMEText(
-                    f"Hi,\n\nWe found {len(photo_paths)} photo(s) of you from the event. "
-                    "See the attachments!\n\nBest regards",
-                    "plain",
-                ))
-                for path in photo_paths:
-                    with open(path, "rb") as fh:
-                        img_part = MIMEImage(fh.read())
-                    img_part.add_header("Content-Disposition", "attachment",
-                                        filename=os.path.basename(path))
-                    msg.attach(img_part)
-                with smtplib.SMTP(smtp_host, smtp_port, timeout=30) as conn:
-                    conn.ehlo(); conn.starttls(); conn.login(smtp_user, smtp_pass)
-                    conn.sendmail(smtp_user, demo_recipient, msg.as_string())
-                emails_sent += 1
-                details.append(DeliveryDetail(email=to_email, photos_count=len(photo_paths)))
-            except Exception as exc:
-                print(f"  [/delivery/run] send to {to_email} failed: {exc}")
-                failed += 1
+        def _send_one(item):
+            to_email, photo_paths = item
+            person_name = name_by_email.get(to_email, "")
+            subject     = f"{person_name} — {to_email}" if person_name else to_email
+            msg = MIMEMultipart()
+            msg["From"]    = smtp_user
+            msg["To"]      = demo_recipient
+            msg["Subject"] = subject
+            msg.attach(MIMEText(
+                f"Hi,\n\nWe found {len(photo_paths)} photo(s) of you from the event. "
+                "See the attachments!\n\nBest regards",
+                "plain",
+            ))
+            for path in photo_paths:
+                with open(path, "rb") as fh:
+                    img_part = MIMEImage(fh.read())
+                img_part.add_header("Content-Disposition", "attachment",
+                                    filename=os.path.basename(path))
+                msg.attach(img_part)
+            with smtplib.SMTP(smtp_host, smtp_port, timeout=30) as conn:
+                conn.ehlo(); conn.starttls(); conn.login(smtp_user, smtp_pass)
+                conn.sendmail(smtp_user, demo_recipient, msg.as_string())
+            return to_email, len(photo_paths)
+
+        from concurrent.futures import ThreadPoolExecutor as _TPE
+        with _TPE(max_workers=5) as pool:
+            futures = {pool.submit(_send_one, item): item for item in matches.items()}
+            for future in futures:
+                try:
+                    to_email, count = future.result()
+                    emails_sent += 1
+                    details.append(DeliveryDetail(email=to_email, photos_count=count))
+                except Exception as exc:
+                    print(f"  [/delivery/run] send failed: {exc}")
+                    failed += 1
 
     return DeliveryRunResponse(
         matched=matched, emails_sent=emails_sent, failed=failed, details=details

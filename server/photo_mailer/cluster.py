@@ -5,7 +5,6 @@ import numpy as np
 from PIL import Image
 from deepface import DeepFace
 from sklearn.cluster import DBSCAN
-from photo_mailer import tflite_embedder
 
 SUPPORTED_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 
@@ -26,10 +25,10 @@ def cluster_faces(photos_dir: str, eps: float = 0.6) -> list[dict]:
     for photo_path in photo_files:
         photo_name = os.path.basename(photo_path)
         try:
-            results = DeepFace.extract_faces(
+            results = DeepFace.represent(
                 img_path=photo_path,
+                model_name="Facenet",
                 enforce_detection=False,
-                detector_backend="opencv",
             )
         except Exception as e:
             print(f"  [cluster] skipped {photo_name}: {e}")
@@ -37,8 +36,7 @@ def cluster_faces(photos_dir: str, eps: float = 0.6) -> list[dict]:
 
         img = Image.open(photo_path).convert("RGB")
         for r in results:
-            face_img = Image.fromarray((r["face"] * 255).astype(np.uint8))
-            embedding = tflite_embedder.embed(face_img)
+            embedding = np.array(r["embedding"], dtype=np.float32)
             fa = r.get("facial_area", {})
             all_faces.append({
                 "embedding":  embedding,
