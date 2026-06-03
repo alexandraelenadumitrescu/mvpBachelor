@@ -27,6 +27,52 @@
         android:textColor="@color/color_text_dim"
         android:textSize="12sp" />
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="monospace"
+            android:textColor="@color/color_text_dim"
+            android:textSize="12sp"
+            android:text="MOD POTRIVIRE" />
+
+        <TextView
+            android:id="@+id/tvModeV1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="monospace"
+            android:textSize="12sp"
+            android:textColor="@color/color_amber"
+            android:text="V1 DIRECT" />
+
+        <Switch
+            android:id="@+id/switchMode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:thumbTint="@color/color_amber"
+            android:trackTint="@color/color_surface"
+            android:checked="false" />
+
+        <TextView
+            android:id="@+id/tvModeV2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="monospace"
+            android:textSize="12sp"
+            android:textColor="@color/color_text_dim"
+            android:text="V2 CLUSTER" />
+
+    </LinearLayout>
+
     <EditText
         android:id="@+id/etEmployeesUrl"
         android:layout_width="match_parent"

@@ -62,6 +62,13 @@ public interface ApiService {
         @Part List<MultipartBody.Part> photos
     );
 
+    @Multipart
+    @POST("delivery/run/v2")
+    Call<DeliveryResponse> deliveryRunV2(
+        @Part("employees_url") RequestBody employeesUrl,
+        @Part List<MultipartBody.Part> photos
+    );
+
     // ── Vector-only retrieval ─────────────────────────────────────────────────
 
     @POST("search_and_correct")
