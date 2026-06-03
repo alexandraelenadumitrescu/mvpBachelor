@@ -46,7 +46,6 @@ from blur_api.gemini import detect_sensitive as _detect_gemini
 from blur_api.local_detector import detect_sensitive as _detect_local
 from photo_mailer.scraper  import scrape_employees as _scrape
 from photo_mailer.face_db  import build_db          as _build_db
-from photo_mailer.face_db  import build_db_facenet  as _build_db_facenet
 from photo_mailer.matcher  import match_photos       as _match_photos
 from photo_mailer.cluster  import cluster_faces      as _cluster_faces
 from PIL import Image
@@ -1460,9 +1459,9 @@ async def _delivery_run_impl(employees_url, photos, current_user):
         raise HTTPException(400, f"No employees found at {employees_url}")
 
     try:
-        db = _build_db_facenet(employees)
+        db = _build_db(employees)
     except Exception as e:
-        print(f"[delivery/run] _build_db_facenet failed: {e}\n{_tb.format_exc()}")
+        print(f"[delivery/run] _build_db failed: {e}\n{_tb.format_exc()}")
         raise HTTPException(500, f"Build DB failed: {e}")
     print(f"[delivery/run] db built, {len(db)} entries")
     if not db:
