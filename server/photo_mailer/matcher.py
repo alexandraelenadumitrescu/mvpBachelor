@@ -9,7 +9,7 @@ from deepface import DeepFace
 from photo_mailer import tflite_embedder
 
 SUPPORTED_EXTENSIONS = {".jpg", ".jpeg", ".png"}
-THRESHOLD = 0.60   # cosine similarity on L2-normalized TFLite embeddings
+THRESHOLD = 0.70   # cosine similarity on L2-normalized TFLite embeddings
 
 
 def match_photos(
@@ -50,7 +50,7 @@ def match_photos(
             return local
 
         t_detect = time.perf_counter()
-        print(f"  [matcher] {name}: {len(faces)} face(s) in {t_detect - t0:.2f}s")
+        lines = [f"  [matcher] {name}: {len(faces)} face(s) in {t_detect - t0:.2f}s"]
 
         for face in faces:
             face_img = Image.fromarray((face["face"] * 255).astype(np.uint8))
@@ -60,9 +60,10 @@ def match_photos(
                 local.setdefault(best_email, [])
                 if photo_path not in local[best_email]:
                     local[best_email].append(photo_path)
-                print(f"    ✓ {best_email} sim={best_sim:.3f}")
+                lines.append(f"    ✓ {best_email} sim={best_sim:.3f}")
             else:
-                print(f"    ✗ best={best_email} sim={best_sim:.3f} < {threshold}")
+                lines.append(f"    ✗ {best_email} sim={best_sim:.3f} < {threshold}")
+        print("\n".join(lines))
         return local
 
     t_start = time.perf_counter()
