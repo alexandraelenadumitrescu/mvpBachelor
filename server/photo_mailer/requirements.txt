@@ -1,0 +1,6 @@
+requests
+beautifulsoup4
+deepface
+opencv-python
+Pillow
+numpy

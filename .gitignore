@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+.venv/
+venv/
+
+# Server runtime
+server/.env
+server/users.db
+server/lut_cache.npz
+server/images/
+
+# Android build
+android/build/
+android/.gradle/
+android/local.properties
+android/**/*.class
+
+# IDE
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/color_background">
+
+    <!-- Before/after comparison area -->
+    <FrameLayout
+        android:id="@+id/flCompare"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@id/tvMatchInfo"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <!-- After (right side, full width, shown underneath) -->
+        <ImageView
+            android:id="@+id/ivAfter"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter" />
+
+        <!-- Before (left side, clipped at divider) -->
+        <ImageView
+            android:id="@+id/ivBefore"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter" />
+
+        <!-- BEFORE label -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|start"
+            android:layout_margin="12dp"
+            android:background="#80000000"
+            android:fontFamily="monospace"
+            android:paddingStart="6dp"
+            android:paddingTop="3dp"
+            android:paddingEnd="6dp"
+            android:paddingBottom="3dp"
+            android:text="BEFORE"
+            android:textColor="@color/color_text"
+            android:textSize="11sp" />
+
+        <!-- AFTER label -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|end"
+            android:layout_margin="12dp"
+            android:background="#80000000"
+            android:fontFamily="monospace"
+            android:paddingStart="6dp"
+            android:paddingTop="3dp"
+            android:paddingEnd="6dp"
+            android:paddingBottom="3dp"
+            android:text="AFTER"
+            android:textColor="@color/color_text"
+            android:textSize="11sp" />
+
+        <!-- Draggable divider line -->
+        <View
+            android:id="@+id/vDivider"
+            android:layout_width="3dp"
+            android:layout_height="match_parent"
+            android:background="@color/color_amber" />
+
+    </FrameLayout>
+
+    <!-- Match info bar at bottom -->
+    <TextView
+        android:id="@+id/tvMatchInfo"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="#CC000000"
+        android:fontFamily="monospace"
+        android:padding="14dp"
+        android:textColor="@color/color_amber_dim"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

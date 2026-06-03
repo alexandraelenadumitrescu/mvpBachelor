@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/color_background"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="32dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="monospace"
+        android:letterSpacing="0.25"
+        android:text="PHOTOMATCH"
+        android:textColor="@color/color_amber"
+        android:textSize="28sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:fontFamily="monospace"
+        android:text="cont nou"
+        android:textColor="@color/color_text_dim"
+        android:textSize="12sp" />
+
+    <EditText
+        android:id="@+id/etEmail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:background="@color/color_surface"
+        android:fontFamily="monospace"
+        android:hint="email"
+        android:inputType="textEmailAddress"
+        android:padding="14dp"
+        android:textColor="@color/color_text"
+        android:textColorHint="@color/color_text_dim"
+        android:textSize="14sp" />
+
+    <EditText
+        android:id="@+id/etPassword"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:background="@color/color_surface"
+        android:fontFamily="monospace"
+        android:hint="parola"
+        android:inputType="textPassword"
+        android:padding="14dp"
+        android:textColor="@color/color_text"
+        android:textColorHint="@color/color_text_dim"
+        android:textSize="14sp" />
+
+    <EditText
+        android:id="@+id/etConfirmPassword"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:background="@color/color_surface"
+        android:fontFamily="monospace"
+        android:hint="confirma parola"
+        android:inputType="textPassword"
+        android:padding="14dp"
+        android:textColor="@color/color_text"
+        android:textColorHint="@color/color_text_dim"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/tvError"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:fontFamily="monospace"
+        android:textColor="#FF5555"
+        android:textSize="12sp"
+        android:visibility="gone" />
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:indeterminateTint="@color/color_amber"
+        android:visibility="gone" />
+
+    <Button
+        android:id="@+id/btnRegister"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginTop="24dp"
+        android:backgroundTint="@color/color_amber"
+        android:fontFamily="monospace"
+        android:letterSpacing="0.15"
+        android:text="CREEAZA CONT"
+        android:textColor="#000000"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/tvLogin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:fontFamily="monospace"
+        android:text="ai deja un cont? autentifica-te"
+        android:textColor="@color/color_amber_dim"
+        android:textSize="12sp" />
+
+</LinearLayout>

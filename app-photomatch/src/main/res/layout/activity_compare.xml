@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/color_background">
+
+    <!-- Before/after comparison area -->
+    <FrameLayout
+        android:id="@+id/flCompare"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@id/histogramSection"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <!-- After (right side, full width, shown underneath) -->
+        <ImageView
+            android:id="@+id/ivAfter"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter" />
+
+        <!-- Before (left side, clipped at divider) -->
+        <ImageView
+            android:id="@+id/ivBefore"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter" />
+
+        <!-- BEFORE label -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|start"
+            android:layout_margin="12dp"
+            android:background="#80000000"
+            android:fontFamily="monospace"
+            android:paddingStart="6dp"
+            android:paddingTop="3dp"
+            android:paddingEnd="6dp"
+            android:paddingBottom="3dp"
+            android:text="BEFORE"
+            android:textColor="@color/color_text"
+            android:textSize="11sp" />
+
+        <!-- AFTER label -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|end"
+            android:layout_margin="12dp"
+            android:background="#80000000"
+            android:fontFamily="monospace"
+            android:paddingStart="6dp"
+            android:paddingTop="3dp"
+            android:paddingEnd="6dp"
+            android:paddingBottom="3dp"
+            android:text="AFTER"
+            android:textColor="@color/color_text"
+            android:textSize="11sp" />
+
+        <!-- Draggable divider line -->
+        <View
+            android:id="@+id/vDivider"
+            android:layout_width="3dp"
+            android:layout_height="match_parent"
+            android:background="@color/color_amber" />
+
+        <!-- Star/Favorite button -->
+        <ImageButton
+            android:id="@+id/btnStar"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="12dp"
+            android:background="#80000000"
+            android:contentDescription="Favorite"
+            android:padding="8dp"
+            android:src="@drawable/ic_star_outline" />
+
+    </FrameLayout>
+
+    <!-- RGB histogram section -->
+    <LinearLayout
+        android:id="@+id/histogramSection"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@color/color_surface"
+        android:orientation="vertical"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"
+        app:layout_constraintBottom_toTopOf="@id/tvMatchInfo"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:fontFamily="monospace"
+            android:text="CHANNEL DISTRIBUTION"
+            android:textColor="@color/color_text_dim"
+            android:textSize="10sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <com.photomatch.HistogramView
+                android:id="@+id/histogramBefore"
+                android:layout_width="0dp"
+                android:layout_height="80dp"
+                android:layout_weight="1" />
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="@color/color_background" />
+
+            <com.photomatch.HistogramView
+                android:id="@+id/histogramAfter"
+                android:layout_width="0dp"
+                android:layout_height="80dp"
+                android:layout_weight="1" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Match info bar at bottom -->
+    <TextView
+        android:id="@+id/tvMatchInfo"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="#CC000000"
+        android:fontFamily="monospace"
+        android:padding="14dp"
+        android:textColor="@color/color_amber_dim"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

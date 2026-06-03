@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="color_amber">#C9A84C</color>
+    <color name="color_amber_dim">#8A6E30</color>
+    <color name="color_background">#0A0A0A</color>
+    <color name="color_surface">#1A1A1A</color>
+    <color name="color_text">#FFFFFF</color>
+    <color name="color_text_dim">#AAAAAA</color>
+    <style name="Theme.PhotoMatch" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowBackground">@color/color_background</item>
+        <item name="android:statusBarColor">@color/color_background</item>
+        <item name="colorPrimary">@color/color_amber</item>
+        <item name="colorPrimaryDark">@color/color_background</item>
+    </style>
+</resources>

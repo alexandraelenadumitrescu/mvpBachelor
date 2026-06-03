@@ -1,0 +1,19 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.photomatch.app-photomatch-mergeDebugResources-37:/values-ldltr-v21/values-ldltr-v21.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\alexa\\.gradle\\caches\\transforms-4\\4f231f6ea22d5f829556d704d894296e\\transformed\\appcompat-1.7.0\\res\\values-ldltr-v21\\values-ldltr-v21.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "112",
+                        "endOffsets": "163"
+                    }
+                }
+            ]
+        }
+    ]
+}

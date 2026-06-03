@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="color_background">#0A0A0A</color>
+    <color name="color_surface">#1A1A1A</color>
+    <color name="color_amber">#C9A84C</color>
+    <color name="color_amber_dim">#8A6E30</color>
+    <color name="color_text">#FFFFFF</color>
+    <color name="color_text_dim">#AAAAAA</color>
+</resources>

@@ -1,0 +1,7 @@
+server/images/
+*.jpg
+*.png
+*.jpeg
+*.pt
+*.npy
+*.pickle

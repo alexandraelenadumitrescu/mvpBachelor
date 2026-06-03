@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/color_background"
+    android:orientation="vertical">
+
+    <!-- Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="16dp"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="monospace"
+            android:letterSpacing="0.2"
+            android:text="BLUR SENSIBIL"
+            android:textColor="@color/color_amber"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvCounter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="monospace"
+            android:text="0 / 0"
+            android:textColor="@color/color_text_dim"
+            android:textSize="12sp"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <!-- Image view (zoomable, takes most of the screen) -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="8dp"
+        android:background="@color/color_surface">
+
+        <com.photomatch.ui.ZoomableImageView
+            android:id="@+id/ivMain"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <!-- Toggle overlay button (top-right corner) -->
+        <Button
+            android:id="@+id/btnToggle"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:layout_gravity="top|end"
+            android:layout_margin="8dp"
+            android:background="@color/color_surface"
+            android:fontFamily="monospace"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:text="ORIGINAL"
+            android:textColor="@color/color_amber"
+            android:textSize="10sp"
+            android:visibility="gone" />
+
+        <!-- Regions count badge -->
+        <TextView
+            android:id="@+id/tvRegions"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|start"
+            android:layout_margin="8dp"
+            android:background="@color/color_surface"
+            android:fontFamily="monospace"
+            android:paddingStart="6dp"
+            android:paddingEnd="6dp"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
+            android:textColor="@color/color_amber"
+            android:textSize="10sp"
+            android:visibility="gone" />
+    </FrameLayout>
+
+    <!-- Navigation (prev / next) -->
+    <LinearLayout
+        android:id="@+id/navigationRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <Button
+            android:id="@+id/btnPrev"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:fontFamily="monospace"
+            android:text="&lt; PREV"
+            android:textColor="@color/color_text_dim"
+            android:textSize="12sp" />
+
+        <Button
+            android:id="@+id/btnNext"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:fontFamily="monospace"
+            android:text="NEXT &gt;"
+            android:textColor="@color/color_text_dim"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <!-- Controls -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="12dp">
+
+        <!-- Detector switch -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:paddingTop="8dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="monospace"
+                android:text="detector: local / gemini"
+                android:textColor="@color/color_text_dim"
+                android:textSize="11sp" />
+
+            <Switch
+                android:id="@+id/switchDetector"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:thumbTint="@color/color_amber"
+                android:trackTint="@color/color_surface" />
+        </LinearLayout>
+
+        <!-- Error / progress -->
+        <TextView
+            android:id="@+id/tvError"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:fontFamily="monospace"
+            android:textColor="#FF5555"
+            android:textSize="11sp"
+            android:visibility="gone" />
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:layout_marginTop="4dp"
+            android:progressTint="@color/color_amber"
+            android:visibility="gone" />
+
+        <!-- Action buttons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnPick"
+                android:layout_width="0dp"
+                android:layout_height="46dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:fontFamily="monospace"
+                android:text="FOTO"
+                android:textColor="@color/color_amber"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/btnPickFolder"
+                android:layout_width="0dp"
+                android:layout_height="46dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:fontFamily="monospace"
+                android:text="FOLDER"
+                android:textColor="@color/color_amber"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/btnBlur"
+                android:layout_width="0dp"
+                android:layout_height="46dp"
+                android:layout_weight="1"
+                android:layout_marginStart="4dp"
+                android:backgroundTint="@color/color_amber"
+                android:enabled="false"
+                android:fontFamily="monospace"
+                android:text="BLUR"
+                android:textColor="#000000"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/btnExport"
+                android:layout_width="0dp"
+                android:layout_height="46dp"
+                android:layout_weight="1"
+                android:layout_marginStart="4dp"
+                android:background="@android:color/transparent"
+                android:enabled="false"
+                android:fontFamily="monospace"
+                android:text="SAVE"
+                android:textColor="@color/color_text_dim"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>
