@@ -6,13 +6,17 @@ import numpy as np
 from PIL import Image
 from deepface import DeepFace
 from photo_mailer import tflite_embedder
+from photo_mailer.face_utils import resize_to_max, crop_with_padding
 
 
 def build_db(employees: list[dict]) -> dict[str, np.ndarray]:
     """
-    Download each employee photo, detect face with OpenCV,
-    embed with FaceNet TFLite — same model as Android.
-    Sequential: DeepFace is not thread-safe.
+    Download each employee photo, detect face, embed with FaceNet TFLite.
+    Mirrors Android FaceGroupsActivity pipeline:
+      - resize to 1024px max (same as decodeBitmap(uri, 1024))
+      - crop with 20% padding (same as cropFace(bmp, box, 0.20f))
+      - embed with facenet.tflite (same model)
+    Sequential — DeepFace is not thread-safe.
     """
     db = {}
     for emp in employees:
@@ -21,9 +25,16 @@ def build_db(employees: list[dict]) -> dict[str, np.ndarray]:
         try:
             resp = requests.get(url, timeout=10)
             resp.raise_for_status()
+
+            img = resize_to_max(
+                Image.open(__import__("io").BytesIO(resp.content)).convert("RGB"),
+                max_side=1024,
+            )
+
             with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp:
-                tmp.write(resp.content)
+                img.save(tmp, format="JPEG", quality=92)
                 tmp_path = tmp.name
+
             try:
                 faces = DeepFace.extract_faces(
                     img_path=tmp_path,
@@ -33,13 +44,16 @@ def build_db(employees: list[dict]) -> dict[str, np.ndarray]:
                 if not faces:
                     print(f"    ✗ no face detected for {name}")
                     continue
-                face_arr = faces[0]["face"]
-                face_img = Image.fromarray((face_arr * 255).astype(np.uint8))
-                embedding = tflite_embedder.embed(face_img)
-                db[email] = embedding
-                print(f"    ✓ {name}: {len(embedding)} dims")
+
+                fa      = faces[0].get("facial_area", {})
+                crop    = crop_with_padding(img, fa, padding=0.20)
+                emb     = tflite_embedder.embed(crop)
+                db[email] = emb
+                print(f"    ✓ {name}: {len(emb)} dims")
             finally:
                 os.unlink(tmp_path)
+
         except Exception as exc:
             print(f"    ✗ {name} skipped: {exc}")
+
     return db

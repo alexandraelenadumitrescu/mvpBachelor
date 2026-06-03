@@ -1,16 +1,17 @@
 import os
 import time
-import threading
 import datetime
+import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import numpy as np
 from PIL import Image
 from deepface import DeepFace
 from photo_mailer import tflite_embedder
+from photo_mailer.face_utils import resize_to_max, crop_with_padding
 
 SUPPORTED_EXTENSIONS = {".jpg", ".jpeg", ".png"}
-THRESHOLD = 0.70   # cosine similarity on L2-normalized TFLite embeddings
+THRESHOLD   = 0.70   # cosine similarity on L2-normalized TFLite embeddings
 REPORT_PATH = os.path.join(os.path.dirname(__file__), "..", "match_report.txt")
 
 
@@ -20,8 +21,8 @@ def match_photos(
     threshold: float = THRESHOLD,
 ) -> dict[str, list[str]]:
     """
-    Detect faces with RetinaFace, embed with FaceNet TFLite (same model as Android),
-    match against employee DB. Processes photos in parallel.
+    Detect faces, crop with 20% padding, embed with FaceNet TFLite — same pipeline as Android.
+    Processes photos in parallel (DeepFace per-photo, TFLite serialized via lock).
     Returns {email: [photo_paths]}.
     """
     results: dict[str, list[str]] = {}
@@ -37,34 +38,50 @@ def match_photos(
         print(f"[matcher] no images found in {photos_dir}")
         return results
 
-    def process_photo(photo_path: str) -> tuple[dict[str, list[str]], list[str]]:
+    def process_photo(photo_path: str) -> tuple[dict, list[str]]:
         local: dict[str, list[str]] = {}
         name = os.path.basename(photo_path)
-        t0 = time.perf_counter()
+        t0   = time.perf_counter()
+
         try:
-            faces = DeepFace.extract_faces(
-                img_path=photo_path,
-                enforce_detection=False,
-                detector_backend="opencv",
+            # Mirror Android: resize to 1024px before detection
+            img = resize_to_max(
+                Image.open(photo_path).convert("RGB"),
+                max_side=1024,
             )
+            # Save resized to temp for DeepFace (needs file path)
+            import tempfile
+            with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp:
+                img.save(tmp, format="JPEG", quality=92)
+                tmp_path = tmp.name
+            try:
+                faces = DeepFace.extract_faces(
+                    img_path=tmp_path,
+                    enforce_detection=False,
+                    detector_backend="opencv",
+                )
+            finally:
+                os.unlink(tmp_path)
         except Exception as exc:
             lines = [f"  ✗ {name}  SKIPPED: {exc}"]
             print(lines[0])
             return local, lines
 
         t_detect = time.perf_counter()
-        lines = [f"\n--- {name}  ({len(faces)} face(s) detected, {t_detect-t0:.2f}s) ---"]
+        lines = [f"\n--- {name}  ({len(faces)} face(s), {t_detect-t0:.2f}s) ---"]
 
         for face_idx, face in enumerate(faces):
-            face_img   = Image.fromarray((face["face"] * 255).astype(np.uint8))
-            embedding  = tflite_embedder.embed(face_img)
-            top        = _top_matches(embedding, db, top_k=5)
-            best_email, best_sim = top[0]
+            # Mirror Android cropFace(bmp, box, 0.20f)
+            fa   = face.get("facial_area", {})
+            crop = crop_with_padding(img, fa, padding=0.20)
+            emb  = tflite_embedder.embed(crop)
+            top  = _top_matches(emb, db, top_k=5)
 
-            lines.append(f"  Face #{face_idx+1}  top-5 matches:")
+            best_email, best_sim = top[0]
+            lines.append(f"  Face #{face_idx+1}  top-5:")
             for rank, (email, sim) in enumerate(top, 1):
-                marker = "✓ MATCH" if sim >= threshold and rank == 1 else ("      " if rank > 1 else "✗     ")
-                lines.append(f"    {rank}. {sim:.4f}  {email}  {marker}")
+                tag = "✓ MATCH" if sim >= threshold and rank == 1 else ""
+                lines.append(f"    {rank}. {sim:.4f}  {email}  {tag}")
 
             if best_sim >= threshold:
                 local.setdefault(best_email, [])
@@ -96,7 +113,6 @@ def match_photos(
                 report_lines.extend(photo_lines)
 
     t_total = time.perf_counter() - t_start
-
     summary = [
         "=" * 70,
         f"SUMMARY: {len(photo_files)} photos in {t_total:.1f}s → {len(results)} person(s) matched",
@@ -110,9 +126,9 @@ def match_photos(
     try:
         with open(REPORT_PATH, "w", encoding="utf-8") as f:
             f.write(report_text + "\n")
-        print(f"  [matcher] report saved → {os.path.abspath(REPORT_PATH)}")
+        print(f"  [matcher] report → {os.path.abspath(REPORT_PATH)}")
     except Exception as e:
-        print(f"  [matcher] could not save report: {e}")
+        print(f"  [matcher] report save failed: {e}")
 
     return results
 

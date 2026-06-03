@@ -1543,7 +1543,7 @@ async def _delivery_run_impl(employees_url, photos, current_user):
                 fname = f"{uuid.uuid4()}.jpg"
                 pil   = Image.open(BytesIO(data)).convert("RGB")
                 w, h  = pil.size
-                scale = min(1920 / max(w, h), 1.0)
+                scale = min(1024 / max(w, h), 1.0)
                 if scale < 1.0:
                     pil = pil.resize((int(w * scale), int(h * scale)), Image.BILINEAR)
                 pil.save(os.path.join(tmp_dir, fname), "JPEG", quality=92)
