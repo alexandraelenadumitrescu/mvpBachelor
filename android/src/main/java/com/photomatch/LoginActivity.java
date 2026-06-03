@@ -19,6 +19,7 @@ import retrofit2.Response;
 
 public class LoginActivity extends BaseActivity {
 
+    private EditText    etServerIp;
     private EditText    etEmail;
     private EditText    etPassword;
     private Button      btnLogin;
@@ -41,16 +42,19 @@ public class LoginActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        etServerIp  = findViewById(R.id.etServerIp);
         etEmail     = findViewById(R.id.etEmail);
         etPassword  = findViewById(R.id.etPassword);
         btnLogin    = findViewById(R.id.btnLogin);
         progressBar = findViewById(R.id.progressBar);
+        tvError     = findViewById(R.id.tvError);
+
+        etServerIp.setText(ApiClient.getServerIp());
 
         findViewById(R.id.tvRegister).setOnClickListener(v -> {
             startActivity(new Intent(this, RegisterActivity.class));
             finish();
         });
-        tvError     = findViewById(R.id.tvError);
 
         etEmail.setText("a@a.com");
         etPassword.setText("string");
@@ -59,8 +63,11 @@ public class LoginActivity extends BaseActivity {
     }
 
     private void attemptLogin() {
+        String ip       = etServerIp.getText().toString().trim();
         String email    = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString();
+
+        if (!ip.isEmpty()) ApiClient.saveServerIp(ip);
 
         if (email.isEmpty() || password.isEmpty()) {
             tvError.setText("Email si parola sunt obligatorii");
