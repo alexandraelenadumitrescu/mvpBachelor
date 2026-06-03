@@ -1473,15 +1473,6 @@ async def _delivery_run_impl(employees_url, photos, current_user):
     failed      = 0
     details     = []
 
-    try:
-        smtp_conn = smtplib.SMTP(smtp_host, smtp_port, timeout=10)
-        smtp_conn.ehlo()
-        smtp_conn.starttls()
-        smtp_conn.login(smtp_user, smtp_pass)
-    except Exception as smtp_err:
-        print(f"  [/delivery/run] SMTP connection/login failed: {smtp_err}")
-        smtp_conn = None
-
     with tempfile.TemporaryDirectory() as tmp_dir:
         for photo in photos:
             data  = await photo.read()
@@ -1493,36 +1484,36 @@ async def _delivery_run_impl(employees_url, photos, current_user):
         matches = _match_photos(tmp_dir, db)
         matched = sum(len(paths) for paths in matches.values())
 
-        name_by_email   = {e["email"]: e.get("name", "") for e in employees}
-        demo_recipient  = "alexandradumitrescu04@gmail.com"
+        name_by_email  = {e["email"]: e.get("name", "") for e in employees}
+        demo_recipient = "alexandradumitrescu04@gmail.com"
 
-        if smtp_conn:
-            with smtp_conn:
-                for to_email, photo_paths in matches.items():
-                    try:
-                        person_name = name_by_email.get(to_email, "")
-                        subject     = f"{person_name} — {to_email}" if person_name else to_email
-                        msg = MIMEMultipart()
-                        msg["From"]    = smtp_user
-                        msg["To"]      = demo_recipient
-                        msg["Subject"] = subject
-                        msg.attach(MIMEText(
-                            f"Hi,\n\nWe found {len(photo_paths)} photo(s) of you from the event. "
-                            "See the attachments!\n\nBest regards",
-                            "plain",
-                        ))
-                        for path in photo_paths:
-                            with open(path, "rb") as fh:
-                                img_part = MIMEImage(fh.read())
-                            img_part.add_header("Content-Disposition", "attachment",
-                                                filename=os.path.basename(path))
-                            msg.attach(img_part)
-                        smtp_conn.sendmail(smtp_user, demo_recipient, msg.as_string())
-                        emails_sent += 1
-                        details.append(DeliveryDetail(email=to_email, photos_count=len(photo_paths)))
-                    except Exception as exc:
-                        print(f"  [/delivery/run] send to {to_email} failed: {exc}")
-                        failed += 1
+        for to_email, photo_paths in matches.items():
+            try:
+                person_name = name_by_email.get(to_email, "")
+                subject     = f"{person_name} — {to_email}" if person_name else to_email
+                msg = MIMEMultipart()
+                msg["From"]    = smtp_user
+                msg["To"]      = demo_recipient
+                msg["Subject"] = subject
+                msg.attach(MIMEText(
+                    f"Hi,\n\nWe found {len(photo_paths)} photo(s) of you from the event. "
+                    "See the attachments!\n\nBest regards",
+                    "plain",
+                ))
+                for path in photo_paths:
+                    with open(path, "rb") as fh:
+                        img_part = MIMEImage(fh.read())
+                    img_part.add_header("Content-Disposition", "attachment",
+                                        filename=os.path.basename(path))
+                    msg.attach(img_part)
+                with smtplib.SMTP(smtp_host, smtp_port, timeout=30) as conn:
+                    conn.ehlo(); conn.starttls(); conn.login(smtp_user, smtp_pass)
+                    conn.sendmail(smtp_user, demo_recipient, msg.as_string())
+                emails_sent += 1
+                details.append(DeliveryDetail(email=to_email, photos_count=len(photo_paths)))
+            except Exception as exc:
+                print(f"  [/delivery/run] send to {to_email} failed: {exc}")
+                failed += 1
 
     return DeliveryRunResponse(
         matched=matched, emails_sent=emails_sent, failed=failed, details=details
