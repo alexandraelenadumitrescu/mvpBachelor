@@ -9,7 +9,7 @@ from sklearn.cluster import DBSCAN
 SUPPORTED_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 
 
-def cluster_faces(photos_dir: str, eps: float = 0.6) -> list[dict]:
+def cluster_faces(photos_dir: str, eps: float = 0.45) -> list[dict]:
     """
     Detect all faces in photos_dir, cluster by similarity using DBSCAN.
     Returns list of {cluster_id, faces: [{photo_name, face_image}]}

@@ -271,6 +271,8 @@ threading.Thread(target=_precompute_aesthetic_scores, daemon=True).start()
 print("Aesthetic pre-computation started in background")
 
 
+_deepface_ready = threading.Event()
+
 def _warmup_deepface():
     try:
         from deepface import DeepFace as _DF
@@ -281,6 +283,8 @@ def _warmup_deepface():
         print("✅ DeepFace Facenet warmed up")
     except Exception as e:
         print(f"  DeepFace warmup warning: {e}")
+    finally:
+        _deepface_ready.set()
 
 threading.Thread(target=_warmup_deepface, daemon=True).start()
 
@@ -1269,6 +1273,16 @@ _MOCK_EMPLOYEES_HTML = """<!DOCTYPE html>
 </html>"""
 
 
+@app.post("/delivery/invalidate-cache")
+def delivery_invalidate_cache(current_user = Depends(get_current_active_user)):
+    """Clear all cached employee data — call when the employees page changes."""
+    n = len(_employees_cache)
+    _employees_cache.clear()
+    _face_db_tflite.clear()
+    _face_db_facenet.clear()
+    return {"cleared": n, "message": f"Invalidated cache for {n} URL(s)"}
+
+
 @app.get("/mock-employees", response_class=HTMLResponse)
 def mock_employees():
     """Public endpoint — serves the mock company team page for the delivery demo."""
@@ -1345,50 +1359,53 @@ async def delivery_match_embeddings(
     current_user = Depends(get_current_active_user),
 ):
     """Phase 1: receive on-device embeddings, scrape employee DB, return matches."""
-    url = request.employees_url
-    if url not in _employees_cache:
-        try:
-            employees = _scrape(url)
-        except Exception as e:
-            raise HTTPException(500, f"Scrape failed: {e}")
-        if not employees:
-            raise HTTPException(400, f"No employees found at {url}")
-        _employees_cache[url] = (employees, {e["email"]: e.get("name", "") for e in employees})
-    employees, name_by_email = _employees_cache[url]
+    _bg_pause.set()
+    try:
+        url = request.employees_url
+        if url not in _employees_cache:
+            try:
+                employees = _scrape(url)
+            except Exception as e:
+                raise HTTPException(500, f"Scrape failed: {e}")
+            if not employees:
+                raise HTTPException(400, f"No employees found at {url}")
+            _employees_cache[url] = (employees, {e["email"]: e.get("name", "") for e in employees})
+        employees, name_by_email = _employees_cache[url]
 
-    if url not in _face_db_tflite:
-        db = _build_db(employees)
-        if not db:
-            raise HTTPException(500, "Face DB build failed")
-        _face_db_tflite[url] = db
-    db = _face_db_tflite[url]
-    print(f"[match-emb] db={len(db)} employees, photos={len(request.photos)}")
-    print(f"[match-emb] db={len(db)} employees, photos={len(request.photos)}")
+        if url not in _face_db_tflite:
+            db = _build_db(employees)
+            if not db:
+                raise HTTPException(500, "Face DB build failed")
+            _face_db_tflite[url] = db
+        db = _face_db_tflite[url]
+        print(f"[match-emb] db={len(db)} employees, photos={len(request.photos)}")
 
-    matches: list[PhotoMatchItem] = []
-    for photo_data in request.photos:
-        matched_in_photo: set[str] = set()
-        for raw_emb in photo_data.embeddings:
-            emb = np.array(raw_emb, dtype=np.float32)
-            norm = float(np.linalg.norm(emb))
-            if norm > 0:
-                emb = emb / norm
-            best_email, best_sim = "", -1.0
-            for email, db_emb in db.items():
-                sim = float(np.dot(emb, db_emb))
-                if sim > best_sim:
-                    best_sim, best_email = sim, email
-            print(f"  photo={photo_data.photo_index} best={best_email} sim={best_sim:.3f}")
-            if best_sim >= _MATCH_THRESHOLD and best_email not in matched_in_photo:
-                matches.append(PhotoMatchItem(
-                    photo_index=photo_data.photo_index,
-                    email=best_email,
-                    name=name_by_email.get(best_email, ""),
-                ))
-                matched_in_photo.add(best_email)
+        matches: list[PhotoMatchItem] = []
+        for photo_data in request.photos:
+            matched_in_photo: set[str] = set()
+            for raw_emb in photo_data.embeddings:
+                emb = np.array(raw_emb, dtype=np.float32)
+                norm = float(np.linalg.norm(emb))
+                if norm > 0:
+                    emb = emb / norm
+                best_email, best_sim = "", -1.0
+                for email, db_emb in db.items():
+                    sim = float(np.dot(emb, db_emb))
+                    if sim > best_sim:
+                        best_sim, best_email = sim, email
+                print(f"  photo={photo_data.photo_index} best={best_email} sim={best_sim:.3f}")
+                if best_sim >= _MATCH_THRESHOLD and best_email not in matched_in_photo:
+                    matches.append(PhotoMatchItem(
+                        photo_index=photo_data.photo_index,
+                        email=best_email,
+                        name=name_by_email.get(best_email, ""),
+                    ))
+                    matched_in_photo.add(best_email)
 
-    print(f"[match-emb] {len(matches)} matches found")
-    return MatchEmbeddingsResponse(matches=matches, employees_count=len(db))
+        print(f"[match-emb] {len(matches)} matches found")
+        return MatchEmbeddingsResponse(matches=matches, employees_count=len(db))
+    finally:
+        _bg_pause.clear()
 
 
 @app.post("/delivery/send-matched", response_model=SendMatchedResponse)
@@ -1423,7 +1440,7 @@ async def delivery_send_matched(
                                 filename=photo.filename or "photo.jpg")
             msg.attach(img_part)
 
-        with smtplib.SMTP(smtp_host, smtp_port, timeout=15) as server:
+        with smtplib.SMTP(smtp_host, smtp_port, timeout=30) as server:
             server.ehlo(); server.starttls(); server.login(smtp_user, smtp_pass)
             server.sendmail(smtp_user, demo_recipient, msg.as_string())
 
@@ -1468,6 +1485,8 @@ async def delivery_run(
 
 async def _delivery_run_impl(employees_url, photos, current_user):
     import traceback as _tb
+    if not _deepface_ready.wait(timeout=60):
+        raise HTTPException(503, "DeepFace model not ready yet — retry in a few seconds")
     T = {}  # timing dict
     T["start"] = time.perf_counter()
 

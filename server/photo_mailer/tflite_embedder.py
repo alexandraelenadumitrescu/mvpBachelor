@@ -1,4 +1,5 @@
 import os
+import threading
 import numpy as np
 from PIL import Image
 
@@ -7,14 +8,17 @@ _INPUT_SIZE = 160
 _OUTPUT_DIM = 128
 
 _interpreter = None
+_interp_lock = threading.Lock()
 
 
 def _get_interpreter():
     global _interpreter
     if _interpreter is None:
-        import tensorflow as tf
-        _interpreter = tf.lite.Interpreter(model_path=_MODEL_PATH)
-        _interpreter.allocate_tensors()
+        with _interp_lock:
+            if _interpreter is None:
+                import tensorflow as tf
+                _interpreter = tf.lite.Interpreter(model_path=_MODEL_PATH)
+                _interpreter.allocate_tensors()
     return _interpreter
 
 

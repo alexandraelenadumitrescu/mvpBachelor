@@ -54,6 +54,9 @@ def build_db(employees: list[dict]) -> dict[str, np.ndarray]:
                     enforce_detection=False,
                     detector_backend="opencv",
                 )
+                if not faces:
+                    print(f"    ✗ no face detected in photo for {name}")
+                    continue
                 face_arr = faces[0]["face"]  # float64 array [0,1]
                 face_img = Image.fromarray((face_arr * 255).astype(np.uint8))
                 embedding = tflite_embedder.embed(face_img)
