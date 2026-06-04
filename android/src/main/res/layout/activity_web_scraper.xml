@@ -81,11 +81,66 @@
         android:textSize="12sp"
         android:visibility="gone" />
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnFilterAll"
+            android:layout_width="0dp"
+            android:layout_height="32dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:fontFamily="monospace"
+            android:text="TOATE"
+            android:textColor="@color/color_amber"
+            android:textSize="11sp" />
+
+        <Button
+            android:id="@+id/btnFilterHigh"
+            android:layout_width="0dp"
+            android:layout_height="32dp"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:background="@android:color/transparent"
+            android:fontFamily="monospace"
+            android:text="HIGH"
+            android:textColor="@color/color_amber"
+            android:textSize="11sp" />
+
+        <Button
+            android:id="@+id/btnFilterMedium"
+            android:layout_width="0dp"
+            android:layout_height="32dp"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:background="@android:color/transparent"
+            android:fontFamily="monospace"
+            android:text="MEDIUM"
+            android:textColor="@color/color_amber"
+            android:textSize="11sp" />
+
+        <Button
+            android:id="@+id/btnFilterLow"
+            android:layout_width="0dp"
+            android:layout_height="32dp"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:background="@android:color/transparent"
+            android:fontFamily="monospace"
+            android:text="LOW"
+            android:textColor="@color/color_amber"
+            android:textSize="11sp" />
+
+    </LinearLayout>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvResults"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         android:layout_weight="1" />
 
 </LinearLayout>

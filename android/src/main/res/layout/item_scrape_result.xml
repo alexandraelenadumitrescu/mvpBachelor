@@ -5,22 +5,24 @@
     android:layout_height="wrap_content"
     android:background="@color/color_surface"
     android:layout_marginBottom="8dp"
-    android:orientation="horizontal"
+    android:orientation="vertical"
     android:padding="12dp">
 
+    <!-- Full-width image so bounding boxes are clearly visible -->
     <ImageView
         android:id="@+id/ivThumbnail"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:scaleType="centerCrop"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:scaleType="fitCenter"
         android:background="@color/color_background" />
 
+    <!-- Risk label + region count on same row -->
     <LinearLayout
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
-        android:layout_weight="1"
-        android:orientation="vertical">
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
 
         <TextView
             android:id="@+id/tvRiskLabel"
@@ -39,33 +41,63 @@
             android:id="@+id/tvRegionCount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginStart="8dp"
             android:fontFamily="monospace"
             android:textColor="@color/color_text_dim"
             android:textSize="11sp" />
 
-        <TextView
-            android:id="@+id/tvSourceUrl"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:ellipsize="middle"
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvSourceUrl"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:ellipsize="middle"
+        android:fontFamily="monospace"
+        android:maxLines="1"
+        android:textColor="@color/color_text_dim"
+        android:textSize="10sp" />
+
+    <!-- Action row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <Button
+            android:id="@+id/btnBlurNow"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:backgroundTint="@color/color_amber"
             android:fontFamily="monospace"
-            android:maxLines="1"
-            android:textColor="@color/color_text_dim"
-            android:textSize="10sp" />
+            android:letterSpacing="0.1"
+            android:text="BLUR ACUM"
+            android:textColor="#000000"
+            android:textSize="11sp" />
 
         <Button
             android:id="@+id/btnOpenBlur"
             android:layout_width="wrap_content"
-            android:layout_height="36dp"
-            android:layout_marginTop="6dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="8dp"
             android:background="@android:color/transparent"
             android:fontFamily="monospace"
             android:letterSpacing="0.1"
             android:text="DESCHIDE BLUR EDITOR"
             android:textColor="@color/color_amber"
             android:textSize="11sp" />
+
+        <ProgressBar
+            android:id="@+id/blurProgress"
+            style="?android:attr/progressBarStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:indeterminateTint="@color/color_amber"
+            android:visibility="gone" />
 
     </LinearLayout>
 
