@@ -312,6 +312,9 @@ from auth import database, models
 models.Base.metadata.create_all(bind=database.engine)
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 
+from scrape_api.router import router as scrape_router
+app.include_router(scrape_router, prefix="/scrape", tags=["scrape"])
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

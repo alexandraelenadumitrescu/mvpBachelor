@@ -93,4 +93,9 @@ public interface ApiService {
 
     @POST("cluster")
     Call<ClusterResponse> cluster(@Body ClusterRequest request);
+
+    // ── Web scraper ───────────────────────────────────────────────────────────
+
+    @POST("scrape/images")
+    Call<ScrapeResponse> scrapeImages(@Body ScrapeRequest request);
 }

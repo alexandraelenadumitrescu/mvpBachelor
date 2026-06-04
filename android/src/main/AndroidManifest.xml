@@ -44,8 +44,9 @@
         <activity android:name=".CompareActivity"    android:exported="false" />
         <activity android:name=".FavoritesActivity"  android:exported="false" />
         <activity android:name=".FavoriteDetailActivity" android:exported="false" />
-        <activity android:name=".FaceGroupsActivity" android:exported="false" />
-        <activity android:name=".PipelineActivity"   android:exported="false" />
+        <activity android:name=".FaceGroupsActivity"  android:exported="false" />
+        <activity android:name=".PipelineActivity"    android:exported="false" />
+        <activity android:name=".WebScraperActivity"  android:exported="false" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

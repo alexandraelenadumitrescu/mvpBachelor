@@ -83,6 +83,8 @@ public class BlurActivity extends BaseServerActivity {
             loadImagesFromFolder(treeUri);
         });
 
+    static final String EXTRA_URIS = "extra_uris";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -108,6 +110,16 @@ public class BlurActivity extends BaseServerActivity {
         btnToggle.setOnClickListener(v -> toggleView());
         btnPrev.setOnClickListener(v -> navigate(-1));
         btnNext.setOnClickListener(v -> navigate(+1));
+
+        // Accept pre-loaded URIs from WebScraperActivity
+        android.content.Intent intent = getIntent();
+        if (intent != null && intent.hasExtra(EXTRA_URIS)) {
+            java.util.ArrayList<Uri> preloaded =
+                intent.getParcelableArrayListExtra(EXTRA_URIS);
+            if (preloaded != null && !preloaded.isEmpty()) {
+                loadImages(preloaded);
+            }
+        }
     }
 
     // ── Image loading ─────────────────────────────────────────────────────────

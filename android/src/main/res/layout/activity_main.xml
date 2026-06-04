@@ -335,6 +335,19 @@
             android:textColor="@color/color_amber"
             android:textSize="13sp" />
 
+        <Button
+            android:id="@+id/btnWebScraper"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
+            android:background="@android:color/transparent"
+            android:fontFamily="monospace"
+            android:text="WEB SCRAPER"
+            android:textColor="@color/color_amber"
+            android:textSize="13sp" />
+
         <!-- ══ BIBLIOTECA ═══════════════════════════════ -->
         <TextView
             android:layout_width="match_parent"

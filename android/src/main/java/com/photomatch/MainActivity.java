@@ -124,6 +124,8 @@ public class MainActivity extends BaseActivity {
         // PROTECTIE
         findViewById(R.id.btnBlur).setOnClickListener(v ->
             startActivity(new Intent(this, BlurActivity.class)));
+        findViewById(R.id.btnWebScraper).setOnClickListener(v ->
+            startActivity(new Intent(this, WebScraperActivity.class)));
 
         // BIBLIOTECA
         findViewById(R.id.btnFavorites).setOnClickListener(v ->
