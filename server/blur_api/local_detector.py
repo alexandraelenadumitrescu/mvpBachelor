@@ -17,7 +17,7 @@ SENSITIVE_CLASSES = {
     73: "document",  # book
 }
 
-CONFIDENCE_THRESHOLD = 0.4
+CONFIDENCE_THRESHOLD = 0.25
 
 
 def detect_sensitive(image_bytes: bytes) -> list[dict]:

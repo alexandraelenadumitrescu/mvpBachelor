@@ -40,7 +40,7 @@ def _detect_yolo(image_bytes: bytes) -> list[dict]:
     results = _get_yolo_model()(img, verbose=False)
     regions = []
     for box in results[0].boxes:
-        if float(box.conf[0]) < 0.4:
+        if float(box.conf[0]) < 0.25:
             continue
         x1, y1, x2, y2 = map(int, box.xyxy[0])
         regions.append({"label": "badge", "x": x1, "y": y1,
@@ -51,7 +51,7 @@ def _detect_yolo(image_bytes: bytes) -> list[dict]:
 def _detect_contours(image_bytes: bytes) -> list[dict]:
     img = np.array(Image.open(BytesIO(image_bytes)).convert("RGB"))
     h, w = img.shape[:2]
-    min_area = (w * h) * 0.003   # cel puțin 0.3% din imagine
+    min_area = (w * h) * 0.001   # cel puțin 0.1% din imagine
     max_area = (w * h) * 0.25    # cel mult 25% din imagine
 
     gray    = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
@@ -74,7 +74,7 @@ def _detect_contours(image_bytes: bytes) -> list[dict]:
         if bh == 0:
             continue
         ratio  = bh / bw                  # ≥ 1 always
-        if not (1.3 <= ratio <= 2.3):     # card aspect ratio range
+        if not (1.2 <= ratio <= 2.5):     # card aspect ratio range
             continue
 
         box_pts = cv2.boxPoints(rect)
