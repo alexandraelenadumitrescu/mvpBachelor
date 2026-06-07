@@ -93,6 +93,7 @@ def _detect_contours(image_bytes: bytes) -> list[dict]:
     return regions
 
 
+
 def _overlaps(x, y, w, h, seen: list, threshold=0.5) -> bool:
     for sx, sy, sw, sh in seen:
         ix = max(0, min(x + w, sx + sw) - max(x, sx))

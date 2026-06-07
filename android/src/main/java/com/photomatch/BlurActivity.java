@@ -260,13 +260,18 @@ public class BlurActivity extends BaseServerActivity {
                     api().blurDetect(detectPart, detector).execute();
 
                 List<BlurRegion> regions = new ArrayList<>();
+                int serverW = 0, serverH = 0;
                 if (detectResp.isSuccessful() && detectResp.body() != null) {
                     regions = detectResp.body().regions;
+                    serverW = detectResp.body().imageWidth;
+                    serverH = detectResp.body().imageHeight;
                 }
 
-                // 2. Draw boxes on original bitmap
+                // 2. Draw boxes on original bitmap, rescaling from server coords to bitmap coords
                 Bitmap original = ImageUtils.decodeBitmap(getContentResolver(), uri, 1200);
-                Bitmap withBoxes = drawBoxes(original, regions);
+                float scaleX = serverW > 0 ? (float) original.getWidth()  / serverW : 1f;
+                float scaleY = serverH > 0 ? (float) original.getHeight() / serverH : 1f;
+                Bitmap withBoxes = drawBoxes(original, regions, scaleX, scaleY);
                 if (withBoxes != original) original.recycle();
 
                 // 3. Get blurred result
@@ -358,13 +363,13 @@ public class BlurActivity extends BaseServerActivity {
         return MultipartBody.Part.createFormData(field, "photo.jpg", body);
     }
 
-    private static Bitmap drawBoxes(Bitmap src, List<BlurRegion> regions) {
+    private static Bitmap drawBoxes(Bitmap src, List<BlurRegion> regions, float scaleX, float scaleY) {
         if (regions == null || regions.isEmpty()) return src;
         Bitmap result = src.copy(Bitmap.Config.ARGB_8888, true);
         Canvas canvas = new Canvas(result);
 
         Paint boxPaint = new Paint();
-        boxPaint.setColor(Color.parseColor("#C9A84C")); // amber
+        boxPaint.setColor(Color.parseColor("#C9A84C"));
         boxPaint.setStyle(Paint.Style.STROKE);
         boxPaint.setStrokeWidth(Math.max(3f, result.getWidth() / 300f));
         boxPaint.setAntiAlias(true);
@@ -379,11 +384,15 @@ public class BlurActivity extends BaseServerActivity {
         labelPaint.setTypeface(android.graphics.Typeface.MONOSPACE);
 
         for (BlurRegion r : regions) {
-            canvas.drawRect(r.x, r.y, r.x + r.w, r.y + r.h, boxPaint);
+            float left   = r.x             * scaleX;
+            float top    = r.y             * scaleY;
+            float right  = (r.x + r.w)    * scaleX;
+            float bottom = (r.y + r.h)    * scaleY;
+            canvas.drawRect(left, top, right, bottom, boxPaint);
             if (r.label != null && !r.label.isEmpty()) {
                 float textH = labelPaint.getTextSize();
-                canvas.drawRect(r.x, r.y, r.x + r.w, r.y + textH + 8, labelBg);
-                canvas.drawText(r.label, r.x + 6, r.y + textH, labelPaint);
+                canvas.drawRect(left, top, right, top + textH + 8, labelBg);
+                canvas.drawText(r.label, left + 6, top + textH, labelPaint);
             }
         }
         return result;
