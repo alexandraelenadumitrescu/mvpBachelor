@@ -9,7 +9,7 @@ from photo_mailer import tflite_embedder
 from photo_mailer.face_utils import resize_to_max, crop_with_padding
 
 
-def build_db(employees: list[dict]) -> dict[str, np.ndarray]:
+def build_db(employees: list[dict], strict_detection: bool = False) -> dict[str, np.ndarray]:
     """
     Download each employee photo, detect face, embed with FaceNet TFLite.
     Mirrors Android FaceGroupsActivity pipeline:
@@ -41,19 +41,21 @@ def build_db(employees: list[dict]) -> dict[str, np.ndarray]:
                     enforce_detection=False,
                     detector_backend="opencv",
                 )
+                if strict_detection:
+                    faces = [face for face in faces if face.get("confidence", 0) > 0]
                 if not faces:
-                    print(f"    ✗ no face detected for {name}")
+                    print(f"    SKIP no face detected for {name}")
                     continue
 
                 fa      = faces[0].get("facial_area", {})
                 crop    = crop_with_padding(img, fa, padding=0.20)
                 emb     = tflite_embedder.embed(crop)
                 db[email] = emb
-                print(f"    ✓ {name}: {len(emb)} dims")
+                print(f"    OK {name}: {len(emb)} dims")
             finally:
                 os.unlink(tmp_path)
 
         except Exception as exc:
-            print(f"    ✗ {name} skipped: {exc}")
+            print(f"    SKIP {name} skipped: {exc}")
 
     return db

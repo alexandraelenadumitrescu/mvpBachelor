@@ -32,7 +32,6 @@ from io import BytesIO
 from pathlib import Path
 
 import cv2
-import faiss
 import tempfile
 import numpy as np
 import open_clip
@@ -153,9 +152,14 @@ if _search_ready:
     weighted_matrix_norm = weighted_matrix / (final_norms + 1e-8)
     name_to_idx = {name: i for i, name in enumerate(image_names)}
 
-    index = faiss.IndexFlatIP(weighted_matrix_norm.shape[1])
-    index.add(weighted_matrix_norm)
-    print(f"✅ FAISS index ready with {index.ntotal} vectors (dim={weighted_matrix_norm.shape[1]})")
+    if os.getenv("PHOTOMATCH_VECTOR_BACKEND", "faiss") == "qdrant":
+        from qdrant_index import QdrantIndex
+        index = QdrantIndex(weighted_matrix_norm, image_names)
+    else:
+        import faiss
+        index = faiss.IndexFlatIP(weighted_matrix_norm.shape[1])
+        index.add(weighted_matrix_norm)
+    print(f"Vector index ready with {index.ntotal} vectors")
 
 # ============================================================
 # LUT CACHE (pre-computed in background)
@@ -302,6 +306,8 @@ app = FastAPI(title="PhotoMatch Server")
 @app.on_event("startup")
 def _start_background_threads():
     """Start background threads after the module is fully loaded — avoids NameError."""
+    if os.getenv("PHOTOMATCH_PRECOMPUTE", "1") == "0":
+        return
     _lut_thread.start()
     _aesthetic_thread.start()
     _warmup_thread.start()
@@ -697,7 +703,9 @@ def health():
     return {
         "status": "ok",
         "vectors_loaded": len(image_names),
-        "vector_dim": hybrid_matrix.shape[1],
+        "vector_dim": hybrid_matrix.shape[1] if hybrid_matrix is not None else 0,
+        "search_ready": _search_ready,
+        "vector_backend": os.getenv("PHOTOMATCH_VECTOR_BACKEND", "faiss"),
         "device": device,
         "lut_cache_size": len(lut_cache),
         "aesthetic_cache_size": len(aesthetic_cache),

@@ -28,3 +28,16 @@ android/**/*.class
 # OS
 .DS_Store
 Thumbs.db
+
+# Qdrant local persistence
+server/qdrant_data/
+web/.env
+
+# Local event audit output
+web/delivery-audit/
+
+# Classroom demo runtime and local credentials
+demo/runtime/
+demo/.local/
+demo/photos-live/
+demo/postman/*.local.json

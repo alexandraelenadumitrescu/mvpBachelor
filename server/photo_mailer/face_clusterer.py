@@ -39,7 +39,7 @@ class FaceCluster:
         return {f.photo_path for f in self.faces}
 
 
-def extract_all_faces(photos_dir: str) -> list[FaceItem]:
+def extract_all_faces(photos_dir: str, strict_detection: bool = False) -> list[FaceItem]:
     """
     Detect + embed every face in every photo in photos_dir.
     Sequential (DeepFace not thread-safe).
@@ -70,16 +70,20 @@ def extract_all_faces(photos_dir: str) -> list[FaceItem]:
             finally:
                 os.unlink(tmp_path)
 
+            detected_count = 0
             for idx, face in enumerate(faces):
+                if strict_detection and face.get("confidence", 0) <= 0:
+                    continue
                 fa   = face.get("facial_area", {})
                 crop = crop_with_padding(img, fa, padding=0.20)
                 emb  = tflite_embedder.embed(crop)
                 all_faces.append(FaceItem(photo_path=photo_path, face_idx=idx, embedding=emb))
+                detected_count += 1
 
-            print(f"  [cluster] {name}: {len(faces)} face(s) in {time.perf_counter()-t0:.2f}s")
+            print(f"  [cluster] {name}: {detected_count} face(s) in {time.perf_counter()-t0:.2f}s")
 
         except Exception as exc:
-            print(f"  [cluster] ✗ {name} skipped: {exc}")
+            print(f"  [cluster] SKIP {name} skipped: {exc}")
 
     return all_faces
 
@@ -146,7 +150,7 @@ def match_clusters_to_employees(
                 best_sim   = sim
                 best_email = email
 
-        tag = "✓ MATCH" if best_sim >= threshold else "✗"
+        tag = "OK MATCH" if best_sim >= threshold else "SKIP"
         print(f"  [cluster {i+1}/{len(clusters)}] "
               f"{len(cluster.faces)} face(s) across {len(cluster.photo_paths)} photo(s) "
               f"→ {best_email} sim={best_sim:.3f} {tag}")
